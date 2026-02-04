@@ -250,6 +250,34 @@ a:hover {
     background: #0f0f0f;
 }
 
+.module-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.title-text {
+    flex: 1;
+    text-align: center;
+}
+
+.collapse-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-family: inherit;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0 5px;
+    flex-shrink: 0;
+}
+
+.collapse-btn:hover {
+    color: #ccd;
+}
+
 .iss-header {
     font-size: 0.8rem;
     color: #888;

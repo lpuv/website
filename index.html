@@ -88,19 +88,22 @@
 
         <div class="iss-module">
             <div class="module-title">
-                ▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬
+                <span class="title-text">▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬</span>
+                <button id="sat-collapse-btn" class="collapse-btn">[ Collapse ]</button>
             </div>
-            <div class="iss-header">
-                Tracking: <span id="sat-name">SEARCHING...</span>
-                <span class="coords">[ <span id="sat-lat">00.00</span>, <span id="sat-lon">00.00</span> ]</span>
-            </div>
+            <div class="sat-content">
+                <div class="iss-header">
+                    Tracking: <span id="sat-name">SEARCHING...</span>
+                    <span class="coords">[ <span id="sat-lat">00.00</span>, <span id="sat-lon">00.00</span> ]</span>
+                </div>
 
-            <pre id="ascii-map-display"></pre>
-    
-            <div class="iss-footer">
-                STATUS: <span id="sat-status">ACQUIRING SIGNAL</span>
-                <br>
-                Tracking Courtesy of Craftcat Orbital Freightworks
+                <pre id="ascii-map-display"></pre>
+        
+                <div class="iss-footer">
+                    STATUS: <span id="sat-status">ACQUIRING SIGNAL</span>
+                    <br>
+                    Tracking Courtesy of Craftcat Orbital Freightworks
+                </div>
             </div>
         </div>
     </main>
@@ -111,10 +114,16 @@
     </div>
 
     <div class="version-display">
-        SYS.VER.1.3.0
+        SYS.VER.1.4.0
     </div>
 
-    <script src="splashes.js"></script>
-    <script src="script.js"></script>
+    <!-- Load modules in order -->
+    <script src="js/splashes.js"></script>
+    <script src="js/typewriter.js"></script>
+    <script src="js/eastereggs.js"></script>
+    <script src="js/lightmode.js"></script>
+    <script src="js/ticker.js"></script>
+    <script src="js/version.js"></script>
+    <script src="js/satellite.js"></script>
 </body>
 </html>
