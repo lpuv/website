@@ -117,3 +117,87 @@ a:hover {
     background: #ccd; /* The background of the selection */
     color: #1a1a1a;   /* The text color inside the selection */
 }
+
+.barrel-roll {
+    animation: spin 1s ease-in-out;
+}
+
+.barrel-roll-backwards {
+    animation: spin-backwards 1s ease-in-out;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-backwards {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+}
+
+/* The class we will temporarily add to the body */
+.flickering-overlay {
+    animation: fluorescent-fail 2s linear forwards;
+}
+
+@keyframes fluorescent-fail {
+    0%   { background-color: #fff; color: #000; }   /* ON */
+    10%  { background-color: #333; color: #ccd; }   /* OFF */
+    20%  { background-color: #fff; color: #000; }   /* ON */
+    30%  { background-color: #ccc; color: #000; }   /* DIM */
+    40%  { background-color: #fff; color: #000; }   /* ON */
+    50%  { background-color: #1a1a1a; color: #ccd; }/* OFF */
+    60%  { background-color: #fff; color: #000; }   /* ON */
+    70%  { background-color: #fff; color: #000; }   /* ON */
+    75%  { background-color: #fff; color: #000; }   /* ON */
+    80%  { background-color: #888; color: #222; }   /* DYING... */
+    90%  { background-color: #fff; color: #000; }   
+    100% { background-color: #1a1a1a; color: #ccd; } /* OFF */
+}
+
+/* Ticker Container (Hidden by default) */
+.ticker-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px; /* Fixed height helps with alignment */
+    overflow: hidden;
+    background: #ccd; /* Inverted colors for "Alert" look */
+    color: #1a1a1a;   
+    z-index: 10;
+    
+    /* Hide it below the screen initially */
+    transform: translateY(100%); 
+    transition: transform 0.5s ease-out; /* Smooth pop-up */
+}
+
+/* The class JS will add to pop it up */
+.ticker-wrap.active {
+    transform: translateY(0);
+}
+
+/* The Text inside */
+.ticker {
+    display: inline-block;
+    white-space: nowrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 1rem;
+    line-height: 30px; /* Vertically centers text */
+    
+    /* Start completely off-screen to the right */
+    position: absolute; 
+    left: 100%; 
+}
+
+/* The Animation Class (We add this in JS) */
+.scroll-across {
+    animation: ticker-once 10s linear forwards; 
+}
+
+@keyframes ticker-once {
+    0% { left: 100%; transform: translateX(0); }
+    100% { left: 0; transform: translateX(-100%); }
+}
