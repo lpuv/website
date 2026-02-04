@@ -1,10 +1,30 @@
 // Satellite tracking system
 
+
+// christmas
 let isChristmas = false;
 const now = new Date();
 if (now.getMonth() === 11 && now.getDate() >= 24 && now.getDate() <= 26) {
     isChristmas = true;
 }
+
+let tooSmallScreen = false;
+let isCollapsed = false;
+// check if screen too small
+if (window.innerWidth < 768) {
+    tooSmallScreen = true;
+    isCollapsed = true;
+}
+
+addEventListener("resize", () => {
+    if (window.innerWidth < 768) {
+        tooSmallScreen = true;
+        isCollapsed = true;
+    } else {
+        tooSmallScreen = false;
+    }
+});
+
 
 // Base ASCII Map
 const baseMap = [
@@ -198,19 +218,34 @@ if (issModuleEl) {
 // Collapse/Expand functionality
 const collapseBtn = document.getElementById("sat-collapse-btn");
 const satContent = document.querySelector(".sat-content");
-let isCollapsed = false;
+const satTitle = document.querySelector(".title-text");
+
+// Initialize collapsed state
+if (isCollapsed) {
+    satContent.style.display = "none";
+    collapseBtn.innerText = "[ Expand ]";
+}
 
 if (collapseBtn && satContent) {
     collapseBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent the module click event
-        isCollapsed = !isCollapsed;
-        
-        if (isCollapsed) {
-            satContent.style.display = "none";
-            collapseBtn.innerText = "[ Expand ]";
+
+        if (tooSmallScreen) {
+            satTitle.innerText = "Your screen size is noncompliant.";
+            setTimeout(() => {
+                satTitle.innerText = "▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬";
+            }, 1000);
         } else {
-            satContent.style.display = "block";
-            collapseBtn.innerText = "[ Collapse ]";
+            isCollapsed = !isCollapsed;
+            if (isCollapsed) {
+                satContent.style.display = "none";
+                collapseBtn.innerText = "[ Expand ]";
+            } else {
+                satContent.style.display = "block";
+                collapseBtn.innerText = "[ Collapse ]";
+                // Start drawing the map when expanded for the first time
+                drawMap();
+            }
         }
     });
 }
@@ -219,14 +254,19 @@ if (collapseBtn && satContent) {
 function autoChangeSatellite() {
     currentSatIndex++;
     if (currentSatIndex >= satellites.length) currentSatIndex = 0;
-    drawMap();
+    if (!isCollapsed) { // Only draw if not collapsed
+        drawMap();
+    }
     setTimeout(autoChangeSatellite, 5000);
 }
 
-if (isChristmas) {
-    updateSantaPosition(); // Start tracking Santa instead of updating regular satellites
-} else {
-    updateSatellites(); // Normal satellite tracking
+// Only start satellite tracking if not collapsed initially
+if (!isCollapsed) {
+    if (isChristmas) {
+        updateSantaPosition();
+    } else {
+        updateSatellites();
+    }
 }
 
 setTimeout(autoChangeSatellite, 5000);
