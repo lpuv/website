@@ -396,3 +396,23 @@ a:hover {
     margin-top: 0.8rem;
     text-align: center;
 }
+
+@keyframes git-flicker {
+    0%   { filter: invert(1); }   /* ON */
+    10%  { filter: invert(0); }   /* OFF */
+    20%  { filter: invert(1); }   /* ON */
+    30%  { filter: invert(0.7); } /* DIM */
+    40%  { filter: invert(1); }   /* ON */
+    50%  { filter: invert(0); }   /* OFF */
+    60%  { filter: invert(1); }   /* ON */
+    70%  { filter: invert(1); }   /* ON */
+    75%  { filter: invert(1); }   /* ON */
+    80%  { filter: invert(0.5); } /* DYING... */
+    90%  { filter: invert(1); }   
+    100% { filter: invert(0); }   /* OFF */
+}
+
+/* Invert satellite map during flicker */
+.flickering-overlay .git-module {
+    animation: git-flicker 2s linear forwards;
+}
