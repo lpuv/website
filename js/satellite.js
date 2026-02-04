@@ -25,6 +25,8 @@ addEventListener("resize", () => {
     }
 });
 
+var touchDevice = ('ontouchstart' in document.documentElement);
+
 
 // Base ASCII Map
 const baseMap = [
@@ -231,7 +233,11 @@ if (collapseBtn && satContent) {
         e.stopPropagation(); // Prevent the module click event
 
         if (tooSmallScreen) {
-            satTitle.innerText = "Your screen size is noncompliant.";
+            if (touchDevice) {
+                satTitle.innerText = "Rotate device to restore orbital telemetry.";
+            } else {
+                satTitle.innerText = "Your screen size is noncompliant.";
+            }
             setTimeout(() => {
                 satTitle.innerText = "▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬";
             }, 1000);
