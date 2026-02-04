@@ -42,25 +42,24 @@ const writeLoop = async () => {
     while (true) {
         let curWord = phrases[phraseIndex];
         
-        // 1. Type the word
         for (let i = 0; i < curWord.length; i++) {
             el.innerText = curWord.substring(0, i + 1);
-            await sleep(75); // Typing speed (milliseconds)
+            await sleep(75); // Typing speed
         }
 
-        // 2. Wait after typing
-        await sleep(2500); // How long to stay on the word
+        // wait
+        await sleep(2500);
 
-        // 3. Backspace the word
+        // backspace
         for (let i = curWord.length; i > 0; i--) {
             el.innerText = curWord.substring(0, i - 1);
             await sleep(50); // Backspace speed (faster than typing)
         }
 
-        // 4. Wait before next word
+        // wait a bit
         await sleep(500);
 
-        // 5. Switch to next phrase
+        // next phrase
         phraseIndex++;
         if (phraseIndex >= phrases.length) {
             phraseIndex = 0;
@@ -106,12 +105,12 @@ document.addEventListener("keydown", (e) => {
 const lightBtn = document.getElementById("light-mode-btn");
 
 lightBtn.addEventListener("click", () => {
-    // 1. Trigger the CSS animation
+    // trigger css animation
     document.body.classList.add("flickering-overlay");
     lightBtn.innerText = "IGNITING...";
     lightBtn.disabled = true; // Prevent spamming clicks while flickering
 
-    // 2. Wait 1.5 seconds (1500ms) for the animation to finish
+    // wait for animation to finish
     setTimeout(() => {
         // Remove the class to ensure it stays dark cleanly
         document.body.classList.remove("flickering-overlay");
@@ -131,6 +130,10 @@ lightBtn.addEventListener("mouseover", () => {
     } else {
         lightBtn.title = "Warning: May cause temporary blindness.";
     }
+});
+
+lightBtn.addEventListener("mouseout", () => {
+    lightBtn.title = "";
 });
 
 
@@ -174,3 +177,17 @@ function showBreakingNews() {
 
 // Start the first loop after a short delay
 setTimeout(showBreakingNews, 5000);
+
+// Random build number
+const verEl = document.querySelector(".version-display");
+// Generates a version like "v2.0.592"
+const buildNum = Math.floor(Math.random() * 999);
+verEl.innerText = `SYS.VER.1.2.${buildNum}`;
+
+verEl.addEventListener("click", () => {
+    verEl.innerText = `Current Build: SYS.VER.1.2.${buildNum}\nAll systems nominal. No known bugs. Everything is fine.`;
+    setTimeout(() => {
+        verEl.innerText = `SYS.VER.1.2.${buildNum}`;
+    }, 2000);
+});
+
