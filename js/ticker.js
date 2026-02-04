@@ -9,6 +9,8 @@ const tickerText = document.getElementById("ticker-text");
 function showBreakingNews() {
     window.isNewsActive = true;
 
+    shuffle(tickerLibrary);
+
     const headline = tickerLibrary[Math.floor(Math.random() * tickerLibrary.length)];
     tickerText.innerText = headline;
 

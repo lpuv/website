@@ -315,3 +315,84 @@ a:hover {
     text-shadow: 0 0 5px #fff;
     background-color: #333;
 }
+
+.git-module {
+    margin-top: 2rem;
+    border: 1px solid #333;
+    padding: 10px 15px;
+    display: inline-block;
+    min-width: 350px;
+    text-align: center;
+    background: #0f0f0f;
+}
+
+.git-header {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 0.8rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.git-log {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    max-height: 240px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #333 #0f0f0f;
+}
+
+.git-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+.git-log::-webkit-scrollbar-track {
+    background: #0f0f0f;
+}
+
+.git-log::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+.git-log::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.git-log li {
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-left: 2px solid #333;
+    padding-left: 8px;
+    color: #888;
+}
+
+.git-log li:first-child {
+    color: #ccd;
+    border-left: 2px solid #4a9eff;
+    font-weight: bold;
+}
+
+.git-log a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.git-log a:hover {
+    text-decoration: underline;
+}
+
+.git-footer {
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 0.8rem;
+    text-align: center;
+}

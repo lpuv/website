@@ -251,6 +251,7 @@ if (collapseBtn && satContent) {
                 collapseBtn.innerText = "[ Collapse ]";
                 // Start drawing the map when expanded for the first time
                 drawMap();
+                updateSatellites();
             }
         }
     });
