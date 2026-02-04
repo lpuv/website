@@ -141,6 +141,11 @@ a:hover {
     animation: fluorescent-fail 2s linear forwards;
 }
 
+/* Invert satellite map during flicker */
+.flickering-overlay .iss-module {
+    animation: map-flicker 2s linear forwards;
+}
+
 @keyframes fluorescent-fail {
     0%   { background-color: #fff; color: #000; }   /* ON */
     10%  { background-color: #333; color: #ccd; }   /* OFF */
@@ -154,6 +159,21 @@ a:hover {
     80%  { background-color: #888; color: #222; }   /* DYING... */
     90%  { background-color: #fff; color: #000; }   
     100% { background-color: #1a1a1a; color: #ccd; } /* OFF */
+}
+
+@keyframes map-flicker {
+    0%   { filter: invert(1); }   /* ON */
+    10%  { filter: invert(0); }   /* OFF */
+    20%  { filter: invert(1); }   /* ON */
+    30%  { filter: invert(0.7); } /* DIM */
+    40%  { filter: invert(1); }   /* ON */
+    50%  { filter: invert(0); }   /* OFF */
+    60%  { filter: invert(1); }   /* ON */
+    70%  { filter: invert(1); }   /* ON */
+    75%  { filter: invert(1); }   /* ON */
+    80%  { filter: invert(0.5); } /* DYING... */
+    90%  { filter: invert(1); }   
+    100% { filter: invert(0); }   /* OFF */
 }
 
 /* Ticker Container (Hidden by default) */
