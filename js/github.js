@@ -1,10 +1,7 @@
-/* --- GIT ACTIVITY SPARKLINE --- */
+/* git log */
 
 const USERNAME = "lpuv";
 
-// The characters representing intensity (0 to High)
-// You can change these to whatever looks cool
-const LEVELS = ["_", ".", ":", "|", "█"]; 
 
 async function fetchGitActivity() {
     const logListEl = document.getElementById("git-log-list");
@@ -17,17 +14,17 @@ async function fetchGitActivity() {
     
     userEl.innerText = USERNAME.toUpperCase();
 
-    // 1. CHECK CACHE (Prevent rate-limiting) - clear old format cache
+    // 1. clear old format cache
     const cacheKey = "git_activity_cache";
-    localStorage.removeItem(cacheKey); // Clear old cache format for now
+    localStorage.removeItem(cacheKey);
 
     try {
-        // 2. FETCH DATA (Public Events API)
+        // fetch events
         const response = await fetch(`https://api.github.com/users/${USERNAME}/events`);
         if (!response.ok) throw new Error("API Error");
         const events = await response.json();
 
-        // 3. PROCESS DATA (Log Mode)
+        // process
         logListEl.innerHTML = ""; // Clear "Initializing"
         
         if (events.length === 0) {
@@ -38,7 +35,7 @@ async function fetchGitActivity() {
         const recentEvents = events.slice(0, 10); // Get last 10
         console.log("Processing", recentEvents.length, "events");
         
-        // Add events sequentially with a delay for "live log" effect
+        // Add events sequentially with a delay
         for (let i = 0; i < recentEvents.length; i++) {
             setTimeout(async () => {
                 const event = recentEvents[i];
@@ -111,7 +108,7 @@ async function fetchGitActivity() {
             }, i * 150); // 150ms delay between each entry
         }
 
-        // 4. SAVE TO CACHE
+        // save to cache
         localStorage.setItem(cacheKey, JSON.stringify({
             timestamp: Date.now(),
             logHTML: logListEl.innerHTML
