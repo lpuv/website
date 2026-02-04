@@ -85,6 +85,24 @@
         <button id="light-mode-btn" style="background:none; border:none; color: #ccd; font-family: inherit; cursor: pointer;">
             [ ☀ Light Mode ]
         </button>
+
+        <div class="iss-module">
+            <div class="module-title">
+                ▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬
+            </div>
+            <div class="iss-header">
+                Tracking: <span id="sat-name">SEARCHING...</span>
+                <span class="coords">[ <span id="sat-lat">00.00</span>, <span id="sat-lon">00.00</span> ]</span>
+            </div>
+
+            <pre id="ascii-map-display"></pre>
+    
+            <div class="iss-footer">
+                STATUS: <span id="sat-status">ACQUIRING SIGNAL</span>
+                <br>
+                Tracking Courtesy of Craftcat Orbital Freightworks
+            </div>
+        </div>
     </main>
 
     <div class="ticker-wrap">
@@ -93,7 +111,7 @@
     </div>
 
     <div class="version-display">
-        SYS.VER.1.2.0
+        SYS.VER.1.3.0
     </div>
 
     <script src="splashes.js"></script>

@@ -221,3 +221,49 @@ a:hover {
     color: #ccd;
     text-shadow: 0 0 5px #ccd;
 }
+
+.iss-module {
+    margin-top: 2rem;
+    border: 1px solid #333;
+    padding: 10px;
+    display: inline-block;
+    background: #0f0f0f;
+}
+
+.iss-header {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+}
+
+.iss-footer {
+    font-size: 1rem;
+    color: #444;
+    margin-top: 0.5rem;
+    text-align: right;
+}
+
+#sat-name {
+    color: #ccd;
+    font-weight: bold;
+}
+
+#ascii-map-display {
+    margin: 0;
+    color: #444; /* Dim background map */
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1.15; /* Tweak this if lines look gappy */
+    font-weight: bold;
+    overflow: hidden;
+    white-space: pre; /* Essential for ASCII alignment */
+}
+
+/* Make the satellites glow */
+.sat-active {
+    color: #fff;
+    text-shadow: 0 0 5px #fff;
+    background-color: #333;
+}
