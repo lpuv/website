@@ -30,7 +30,7 @@ const phrases = [
     "We run on 100% recycled electrons.",
     "Q3 Deliverables: finally upgrading to 32-bit architecture.",
     "Q2 Deliverables: Porting all code to Hexagony to improve maintainability and easier onboarding.",
-    
+    "By reading this, you have agreed to give us a signed confession should we ever be subpoenaed.",
 ];
 
 const tickerLibrary = [
