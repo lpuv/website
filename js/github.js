@@ -10,12 +10,10 @@ async function fetchGitActivity() {
     
     userEl.innerText = USERNAME.toUpperCase();
 
-    // 1. Clear old cache (We rely on Vercel caching now mostly)
     const cacheKey = "git_activity_cache";
     localStorage.removeItem(cacheKey);
 
     try {
-        // --- CHANGE 1: Call your own API ---
         const response = await fetch(`/api/github-api?username=${USERNAME}`);
         if (!response.ok) throw new Error("API Error");
         const events = await response.json();
@@ -44,7 +42,7 @@ async function fetchGitActivity() {
                 const timeStr = diffDays === 0 ? "today" : `${diffDays}d ago`;
                 
                 let actionHTML = "";
-                // Safety check: ensure repo name exists
+                // ensure repo name exists
                 const repo = event.repo ? event.repo.name.split('/')[1] : "unknown"; 
                 
                 if (event.type === "PushEvent") {
@@ -53,8 +51,7 @@ async function fetchGitActivity() {
                     const repoFullName = event.repo.name;
                     const commitUrl = `https://github.com/${repoFullName}/commit/${commitSha}`;
                     
-                    // --- CHANGE 2: Read the pre-fetched data ---
-                    // The backend put the message and stats in '_enriched'
+
                     if (event._enriched) {
                         const message = event._enriched.message;
                         const stats = event._enriched.stats;

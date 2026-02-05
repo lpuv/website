@@ -1,5 +1,60 @@
 // api/github.js
+
+// simple in-memory rate limiter
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS = 10; // Max requests per window
+
+function checkRateLimit(ip) {
+    const now = Date.now();
+    const userRequests = rateLimitMap.get(ip) || [];
+    
+    // Remove old requests outside the window
+    const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
+    
+    if (recentRequests.length >= MAX_REQUESTS) {
+        return false; // Rate limit exceeded
+    }
+    
+    recentRequests.push(now);
+    rateLimitMap.set(ip, recentRequests);
+    
+    // Cleanup old entries periodically
+    if (Math.random() < 0.01) { // 1% chance
+        for (const [key, value] of rateLimitMap.entries()) {
+            if (value.every(time => now - time > RATE_LIMIT_WINDOW)) {
+                rateLimitMap.delete(key);
+            }
+        }
+    }
+    
+    return true;
+}
+
 export default async function handler(req, res) {
+    // Check origin header to prevent abuse from browsers
+    const origin = req.headers.origin || req.headers.referer;
+    const allowedOrigins = [
+        'https://craftcat.dev',
+        'https://www.craftcat.dev',
+        'http://localhost',
+        'http://127.0.0.1'
+    ];
+    
+    if (origin && !allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    // Get client IP for rate limiting
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+               req.headers['x-real-ip'] || 
+               req.socket.remoteAddress;
+    
+    // Rate limiting as backup defense
+    if (!checkRateLimit(ip)) {
+        return res.status(429).json({ error: 'Rate limit exceeded. Try again later.' });
+    }
+    
     const { username } = req.query;
 
     if (!username) return res.status(400).json({ error: 'Username required' });
@@ -34,8 +89,8 @@ export default async function handler(req, res) {
 
         const enrichedEvents = await Promise.all(recentEvents.map(async (event) => {
             
-            // Some events (like branch creation) have an empty payload.
-            if (event.type === 'PushEvent' && event.payload.commits?.length > 0) {
+            // Enrich PushEvents with commit details
+            if (event.type === 'PushEvent' && event.payload.head) {
                 try {
                     const repoName = event.repo.name;
                     const commitSha = event.payload.head;
