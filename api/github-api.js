@@ -2,69 +2,68 @@
 export default async function handler(req, res) {
     const { username } = req.query;
 
-    if (!username) {
-        return res.status(400).json({ error: 'Username required' });
-    }
+    if (!username) return res.status(400).json({ error: 'Username required' });
 
     const token = process.env.GITHUB_KEY;
     
-    // Helper to fetch with your token
     const fetchGitHub = async (url) => {
         const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28' // Good practice to lock version
             }
         });
-        if (!response.ok) throw new Error(`GitHub Error: ${response.status}`);
+        if (!response.ok) {
+            // Log error internally but don't crash the request yet
+            console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
+            return null; // Return null so we can handle it gracefully
+        }
         return response.json();
     };
 
     try {
-        // 1. Get the list of events
         const events = await fetchGitHub(`https://api.github.com/users/${username}/events`);
         
-        // 2. Filter to top 10 to save resources
+        // If the token is totally broken (401/403), 'events' will be null.
+        if (!events || !Array.isArray(events)) {
+            return res.status(500).json({ error: "Failed to fetch events. Check Token Permissions." });
+        }
+
         const recentEvents = events.slice(0, 10);
 
-        // 3. "Hydrate" the events (Fetch extra details for Pushes)
-        // We use Promise.all to fetch them all in parallel, which is super fast
         const enrichedEvents = await Promise.all(recentEvents.map(async (event) => {
             
-            // We only need extra data if it's a PushEvent
-            if (event.type === 'PushEvent' && event.payload.commits.length > 0) {
+            // Some events (like branch creation) have an empty payload.
+            if (event.type === 'PushEvent' && event.payload.commits?.length > 0) {
                 try {
                     const repoName = event.repo.name;
                     const commitSha = event.payload.head;
                     
-                    // Fetch the specific commit details
                     const commitData = await fetchGitHub(`https://api.github.com/repos/${repoName}/commits/${commitSha}`);
                     
-                    // Attach the cool stats to the event object
-                    return {
-                        ...event,
-                        _enriched: {
-                            message: commitData.commit.message.split('\n')[0], // First line only
-                            stats: commitData.stats // { additions: 10, deletions: 2 }
-                        }
-                    };
+                    if (commitData && commitData.commit) {
+                        return {
+                            ...event,
+                            _enriched: {
+                                message: commitData.commit.message.split('\n')[0],
+                                stats: commitData.stats
+                            }
+                        };
+                    }
                 } catch (err) {
-                    console.error(`Failed to fetch commit for ${event.id}:`, err);
-                    // If it fails, return the event as-is without extra data
-                    return event;
+                    console.error(`Failed to enrich event ${event.id}`, err);
                 }
             }
             
-            // If not a push, just return the event as-is
             return event;
         }));
 
-        // 4. Cache for 5 minutes (300 seconds)
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
-        
         return res.status(200).json(enrichedEvents);
 
     } catch (error) {
+        console.error("Backend Crash:", error);
         return res.status(500).json({ error: error.message });
     }
 }
