@@ -19,9 +19,17 @@ const sleep = (ms) => {
 
 
 const writeLoop = async () => {
-    shuffle(phrases);
+    if (isChristmas) {
+        shuffle(christmasPhrases);
+    } else {
+        shuffle(phrases);
+    }
     while (true) {
-        let curWord = phrases[phraseIndex];
+        if (isChristmas) {
+            curWord = christmasPhrases[phraseIndex];
+        } else {
+            curWord = phrases[phraseIndex];
+        }
         
         for (let i = 0; i < curWord.length; i++) {
             el.innerText = curWord.substring(0, i + 1);

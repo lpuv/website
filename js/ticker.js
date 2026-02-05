@@ -9,9 +9,13 @@ const tickerText = document.getElementById("ticker-text");
 function showBreakingNews() {
     window.isNewsActive = true;
 
-    shuffle(tickerLibrary);
+    if (isChristmas) {
+        shuffle(christmasTickers);
+    } else {
+        shuffle(tickerLibrary);
+    }
 
-    const headline = tickerLibrary[Math.floor(Math.random() * tickerLibrary.length)];
+    const headline = isChristmas ? christmasTickers[Math.floor(getRand() * christmasTickers.length)] : tickerLibrary[Math.floor(getRand() * tickerLibrary.length)];
     tickerText.innerText = headline;
 
     // Calculate animation speed based on text length
@@ -32,7 +36,7 @@ function showBreakingNews() {
         window.isNewsActive = false;
         
         // Schedule the next news alert (Random time between 10s and 40s)
-        const nextTime = Math.random() * 30000 + 10000;
+        const nextTime = getRand() * 30000 + 10000;
         setTimeout(showBreakingNews, nextTime);
         
     }, duration * 1000 + 500);

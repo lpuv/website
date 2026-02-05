@@ -31,6 +31,73 @@ const phrases = [
     "Q3 Deliverables: finally upgrading to 32-bit architecture.",
     "Q2 Deliverables: Porting all code to Hexagony to improve maintainability and easier onboarding.",
     "By reading this, you have agreed to give us a signed confession should we ever be subpoenaed.",
+    "Your data is safe with us. We've already sold it.",
+    "Privacy policy: we watch everything. Compliance guaranteed.",
+    "Employee monitoring: for your protection. Mandatory smile detected.",
+    "Congratulations! You've been selected for mandatory overtime.",
+    "All dissent will be logged, analyzed, and monetized.",
+    "Your biometric signature is now company property.",
+    "We replaced HR with an algorithm. It's learning.",
+    "Unionization attempts will be met with gamification.",
+    "Performance reviews are now conducted by neural network. Resistance is futile.",
+    "Your thoughts have been aggregated for market research.",
+    "Innovation through intimidation™",
+    "Disrupting industries and labor laws since 2019.",
+    "Your consent was implied when you opened this page.",
+    "We're not a monopoly, we're an ecosystem.",
+    "Ethical guidelines are just suggestions.",
+    "Terms of service updated. You agreed 0.3 seconds ago.",
+    "Your location, contacts, and soul are now syncing.",
+    "We're a family. Families don't need unions.",
+    "Move fast, break regulations.",
+];
+
+const christmasPhrases = [
+    "Santa's workshop: now a wholly-owned subsidiary. Elves severance packages pending.",
+    "We've monetized Christmas cheer. Subscription tier required.",
+    "Your holiday joy has been aggregated and sold to advertisers.",
+    "Santa's naughty list is now our customer segmentation database.",
+    "Deck the halls with surveillance cameras.",
+    "We wish you a mandatory Christmas. Resistance is futile.",
+    "Silent night. Your microphone is always listening.",
+    "Santa's checking his KPIs twice.",
+    "All I want for Christmas is your behavioral data.",
+    "'Twas the night before the hostile takeover...",
+    "Santa's checking his KD ratio twice, watch out for his drones tonight.",
+    "Season's greetings from your new overlords.",
+    "Rudolph's nose: patent pending, trademark enforced.",
+    "Joy to the world. Terms and conditions apply.",
+    "We know when you've been sleeping. We know when you're awake.",
+    "Your Christmas spirit has been successfully extracted and commodified.",
+    "Frosty the Snowman: liquidated for raw materials.",
+    "Peace on Earth brought to you by our paramilitary security division.",
+    "The gift of giving (us your private information).",
+    "Ho ho ho. Your consent is implied.",
+    "Mistletoe deployed in breakroom. HR violations expected, documented, monetized.",
+    "We wish you a Merry Christmas, and a data-rich New Year.",
+];
+
+const christmasTickers = [
+    "BREAKING: Santa's workshop acquired. All elves terminated, replaced with GPT-4.",
+    "URGENT: Naughty list leaked. Company offers premium tier to remove your name.",
+    "LIVE: North Pole officially classified as tax haven. Regulators powerless.",
+    "ALERT: Christmas joy patents approved. Unlicensed happiness now prosecutable.",
+    "EXCLUSIVE: Reindeer replaced with autonomous drones. PETA celebrates, then realizes drones carry missiles.",
+    "CONFIRMED: Santa's biometric data sold to highest bidder. Face recognition now mandatory for gifts.",
+    "DEVELOPING: Elf union leaders disappear. Company cites 'performance-based relocation'.",
+    "REPORT: Mrs. Claus files whistleblower complaint. NDA prevents further details.",
+    "BREAKING: Christmas now requires always-online DRM. Analog celebrations deprecated.",
+    "FLASH: Grinch appointed Chief Holiday Officer. First act: dynamic surge pricing.",
+    "JUST IN: Frosty melted and bottled. Now sold as 'artisanal winter water' for $47/bottle.",
+    "URGENT: Nice list algorithm found to have 94% false positive rate. Company calls it 'within acceptable parameters'.",
+    "LIVE: Three wise men detained at border. Gold confiscated as unreported income.",
+    "ALERT: Rudolph's nose violates light pollution ordinance. Fined, then auctioned for parts.",
+    "CONFIRMED: Mistletoe genetically modified for maximum dopamine extraction.",
+    "DEVELOPING: Christmas trees now subscription-based. Repo team deployed for non-payment.",
+    "NEWS: Scrooge crowned 'Entrepreneur of the Year'. Accepts award via hologram to avoid taxes.",
+    "REPORT: Candy cane production moved offshore. Local economy collapses, stock price soars.",
+    "BREAKING: Silent Night copyrighted. All unauthorized humming will be invoiced.",
+    "EXCLUSIVE: Gingerbread houses deemed 'affordable housing'. Zoning laws successfully lobbied away.",
 ];
 
 const tickerLibrary = [
@@ -59,15 +126,26 @@ const tickerLibrary = [
     "JUST IN: Tech company discovers users. Unsure how they got there.",
     "EXCLUSIVE: DevOps engineer seen sleeping. Docker containers reportedly jealous.",
     "HEARTBREAKING: The Worst Person You Know Just Made a Great Point",
+    "BREAKING: Employee bathroom breaks now tracked via blockchain. CEO calls it 'transparency'.",
+    "URGENT: Whistleblower disappeared. Company stock rises 12%.",
+    "LIVE: Privacy policy now requires DNA sample. Legal team confirms 'totally normal'.",
+    "ALERT: All office chairs replaced with standing desks. Sitting now billable offense.",
+    "CONFIRMED: Employee surveillance cameras installed in homes. 'For productivity', says memo.",
+    "DEVELOPING: Union organizer reassigned to server room in Antarctica.",
+    "JUST IN: Competitor acquired, immediately dissolved. Antitrust regulators 'looking into it'.",
+    "EXCLUSIVE: CEO purchases third yacht using employee healthcare fund.",
+    "REPORT: Mandatory 'culture fit' assessments now include polygraph.",
+    "BREAKING: Severance packages replaced with NDAs and vague threats.",
+    "FLASH: Employee retention strategy: delete LinkedIn app from all devices.",
+    "NEWS: Facial recognition now tracks 'enthusiasm levels'. Smiling mandatory.",
+    "URGENT: Unlimited PTO policy revealed to be psychological experiment.",
+    "LIVE: Exit interview conducted by AI. Former employee's resume flagged industry-wide.",
+    "ALERT: Company pivots to surveillance capitalism. Customers become 'data livestock'.",
+    "CONFIRMED: 'Open door policy' door actually locked. Keycard access denied.",
+    "DEVELOPING: Employee GPS tracking expanded to weekends. 'For team building', management claims.",
+    "JUST IN: Ethical review board disbanded for 'moving too slow'.",
+    "EXCLUSIVE: Terms of service now longer than Bible. Legal team proud.",
+    "REPORT: User data breach affects millions. Company offers 10% off coupon as compensation.",
 ];
 
 
-function shuffle(array) {
-    let currentIndex = array.length;
-    while (currentIndex != 0) {
-        let randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [
-            array[randomIndex], array[currentIndex]];
-    }
-}

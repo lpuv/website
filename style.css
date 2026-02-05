@@ -252,7 +252,7 @@ a:hover {
 
 .module-title {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 0.5rem;
     position: relative;
@@ -271,7 +271,8 @@ a:hover {
     cursor: pointer;
     font-size: 0.9rem;
     padding: 0 5px;
-    flex-shrink: 0;
+    position: absolute;
+    right: 0;
 }
 
 .collapse-btn:hover {
@@ -282,9 +283,17 @@ a:hover {
     font-size: 0.8rem;
     color: #888;
     margin-bottom: 0.5rem;
-    text-align: left;
+    text-align: center;
     display: flex;
     justify-content: space-between;
+}
+
+.iss-title {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    text-align: center;
 }
 
 .iss-footer {
@@ -297,6 +306,7 @@ a:hover {
 #sat-name {
     color: #ccd;
     font-weight: bold;
+    margin-left: 2rem;
 }
 
 #ascii-map-display {
@@ -415,4 +425,35 @@ a:hover {
 /* Invert satellite map during flicker */
 .flickering-overlay .git-module {
     animation: git-flicker 2s linear forwards;
+}
+
+.weather-module {
+    margin-top: 2rem;
+    border: 1px solid #333;
+    padding: 10px 15px;
+    display: inline-block;
+    min-width: 200px;
+    text-align: center;
+    background: #0f0f0f;
+    vertical-align: top; /* Aligns nicely next to other boxes */
+}
+
+.weather-header {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.weather-display {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ff9d00; /* Amber monochrome monitor color */
+    font-family: 'Courier New', Courier, monospace;
+    margin: 10px 0;
+}
+
+.weather-footer {
+    font-size: 0.7rem;
+    color: #666;
 }

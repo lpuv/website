@@ -1,6 +1,6 @@
 // Version display functionality
 
-const actualVersion = "1.7";
+const actualVersion = "1.8";
 const verEl = document.querySelector(".version-display");
 const buildNum = Math.floor(Math.random() * 999);
 

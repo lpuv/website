@@ -88,7 +88,7 @@
 
         <div class="iss-module">
             <div class="module-title">
-                <span class="title-text">▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬</span>
+                <span class="iss-title">▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬</span>
                 <button id="sat-collapse-btn" class="collapse-btn">[ Collapse ]</button>
             </div>
             <div class="sat-content">
@@ -104,6 +104,20 @@
                     <br>
                     Tracking Courtesy of Craftcat Orbital Freightworks
                 </div>
+            </div>
+        </div>
+
+        <div class="weather-module">
+            <div class="weather-header">
+                <a href="https://xkcd.com/3001/" style="text-decoration: none;">// LOCAL.THERMODYNAMICS //</a>
+            </div>
+            <div class="weather-display">
+                <span id="temp-kelvin">CALCULATING...</span>
+            </div>
+            <div class="weather-footer">
+                CONDITION: <span id="weather-desc">SCANNING SKY</span>
+                <br>
+                LOCATION: <span id="weather-location">UNKNOWN</span>
             </div>
         </div>
 
@@ -133,6 +147,7 @@
     </div>
 
     <!-- Load modules in order -->
+    <script src="js/utils.js"></script>
     <script src="js/splashes.js"></script>
     <script src="js/typewriter.js"></script>
     <script src="js/eastereggs.js"></script>
@@ -140,6 +155,7 @@
     <script src="js/ticker.js"></script>
     <script src="js/version.js"></script>
     <script src="js/satellite.js"></script>
+    <script src="js/weather.js"></script>
     <script src="js/github.js"></script>
 </body>
 </html>

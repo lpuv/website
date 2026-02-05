@@ -1,32 +1,6 @@
 // Satellite tracking system
 
 
-// christmas
-let isChristmas = false;
-const now = new Date();
-if (now.getMonth() === 11 && now.getDate() >= 24 && now.getDate() <= 26) {
-    isChristmas = true;
-}
-
-let tooSmallScreen = false;
-let isCollapsed = false;
-// check if screen too small
-if (window.innerWidth < 768) {
-    tooSmallScreen = true;
-    isCollapsed = true;
-}
-
-addEventListener("resize", () => {
-    if (window.innerWidth < 768) {
-        tooSmallScreen = true;
-        isCollapsed = true;
-    } else {
-        tooSmallScreen = false;
-    }
-});
-
-var touchDevice = ('ontouchstart' in document.documentElement);
-
 
 // Base ASCII Map
 const baseMap = [
@@ -76,7 +50,7 @@ const satellites = isChristmas ? [
         lat: 0, lon: 0,
         id: 25544,
         icon: "■",
-        msg: "HUMAN ZOO"
+        msg: "WHAT ARE THEY EVEN DOING UP THERE?"
     },
     {
         name: "CRAFTCAT_SAT_1",
@@ -87,12 +61,12 @@ const satellites = isChristmas ? [
         msg: "SHOOTING LASER POINTERS AT THE MOON"
     },
     {
-        name: "ORBITAL_LASER",
+        name: "CRAFTCAT_SAT_2",
         type: "FAKE",
         lat: -40, lon: 120,
         dLat: -0.3, dLon: 1.8,
         icon: "✦",
-        msg: "TARGETING..."
+        msg: "BROADCASTING SUBLIMINAL MESSAGES"
     },
     {
         name: "SKY_NET_BETA",
@@ -190,10 +164,15 @@ function drawMap() {
     
     // Update info display
     const activeSat = satellites[currentSatIndex];
-    document.getElementById("sat-name").innerText = activeSat.name;
-    document.getElementById("sat-lat").innerText = activeSat.lat.toFixed(2);
-    document.getElementById("sat-lon").innerText = activeSat.lon.toFixed(2);
-    document.getElementById("sat-status").innerText = activeSat.msg;
+    const satNameEl = document.getElementById("sat-name");
+    const satLatEl = document.getElementById("sat-lat");
+    const satLonEl = document.getElementById("sat-lon");
+    const satStatusEl = document.getElementById("sat-status");
+    
+    if (satNameEl) satNameEl.innerText = activeSat.name;
+    if (satLatEl) satLatEl.innerText = activeSat.lat.toFixed(2);
+    if (satLonEl) satLonEl.innerText = activeSat.lon.toFixed(2);
+    if (satStatusEl) satStatusEl.innerText = activeSat.msg;
 }
 
 // Click/keyboard interaction
@@ -220,12 +199,20 @@ if (issModuleEl) {
 // Collapse/Expand functionality
 const collapseBtn = document.getElementById("sat-collapse-btn");
 const satContent = document.querySelector(".sat-content");
-const satTitle = document.querySelector(".title-text");
+const satTitle = document.querySelector(".iss-title");
+const satFooter = document.querySelector(".iss-footer");
 
 // Initialize collapsed state
 if (isCollapsed) {
     satContent.style.display = "none";
     collapseBtn.innerText = "[ Expand ]";
+}
+
+if (isChristmas) {
+    satTitle.innerText = "▬▬▬ SANTA TRACKING SYSTEM ▬▬▬";
+    satFooter.innerText = satFooter.innerText.replace("Tracking Courtesy of Craftcat Orbital Freightworks", "Craftcat Orbital Freightworks wishes you a Merry Christmas!");
+} else {
+    satTitle.innerText = "▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬";
 }
 
 if (collapseBtn && satContent) {
@@ -239,7 +226,7 @@ if (collapseBtn && satContent) {
                 satTitle.innerText = "Your screen size is noncompliant.";
             }
             setTimeout(() => {
-                satTitle.innerText = "▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬";
+                satTitle.innerText = isChristmas ? "▬▬▬ SANTA TRACKING SYSTEM ▬▬▬" : "▬▬▬ SATELLITE TRACKING SYSTEM ▬▬▬";
             }, 1000);
         } else {
             isCollapsed = !isCollapsed;
@@ -251,7 +238,11 @@ if (collapseBtn && satContent) {
                 collapseBtn.innerText = "[ Collapse ]";
                 // Start drawing the map when expanded for the first time
                 drawMap();
-                updateSatellites();
+                if (isChristmas) {
+                    updateSantaPosition();
+                } else {
+                    updateSatellites();
+                }
             }
         }
     });
