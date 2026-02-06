@@ -26,7 +26,6 @@ async function fetchGitActivity() {
             return;
         }
         
-        console.log("Processing", events.length, "events");
         
         // Add events sequentially with a delay
         for (let i = 0; i < events.length; i++) {
