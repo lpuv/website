@@ -100,12 +100,12 @@ function changeIntoRandomScale(tempC) {
 async function initWeather() {
 
     try {
-        const ipRes = await fetch('http://ip-api.com/json/');
+        const ipRes = await fetch('https://ipapi.co/json/');
         const ipData = await ipRes.json();
         
-        if (ipData.status === 'success') {
-            const lat = ipData.lat;
-            const lon = ipData.lon;
+        if (ipData.latitude && ipData.longitude) {
+            const lat = ipData.latitude;
+            const lon = ipData.longitude;
             await fetchWeather(lat, lon);
         } else {
             throw new Error('IP location failed');
@@ -113,7 +113,7 @@ async function initWeather() {
     } catch (ipError) {
         console.error("IP location error:", ipError);
         // Final fallback to Antarctica
-        tempEl.innerText = "ACCESS_DENIED";
+        tempEl.innerText = "ERR: NO_LOCATION";
         descEl.innerText = "UNKNOWN_COORDS";
         const lat = -90.0000;
         const lon = 0.0000;
