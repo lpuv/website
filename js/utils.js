@@ -8,16 +8,19 @@ if (now.getMonth() === 11 && now.getDate() >= 24 && now.getDate() <= 26) {
 
 let tooSmallScreen = false;
 let isCollapsed = false;
+let startCollapsed = false;
 // check if screen too small
 if (window.innerWidth < 768) {
     tooSmallScreen = true;
-    isCollapsed = true;
+    startCollapsed = true;
 }
 
 addEventListener("resize", () => {
     if (window.innerWidth < 768) {
         tooSmallScreen = true;
         isCollapsed = true;
+        if (satContent) satContent.style.display = "none";
+        if (collapseBtn) collapseBtn.innerText = "[ Expand ]";
     } else {
         tooSmallScreen = false;
     }

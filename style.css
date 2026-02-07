@@ -48,7 +48,7 @@ pre.ascii-art {
     margin-bottom: 2rem;
 }
 
-/* --- RESPONSIVE LOGIC --- */
+/* how do you do fellow frontend developers? */
 
 /* DESKTOP RULES (Screens wider than 768px) */
 @media (min-width: 769px) {
@@ -77,7 +77,7 @@ pre.ascii-art {
     }
 }
 
-/* --- TYPING ANIMATION (JS CONTROLLED) --- */
+/* --- TYPING ANIMATION (this is controlled by JS) --- */
 .tagline-container {
     margin-bottom: 1rem;
     display: inline-block;
@@ -136,7 +136,7 @@ a:hover {
     100% { transform: rotate(-360deg); }
 }
 
-/* The class we will temporarily add to the body */
+/* temporary overlay  class */
 .flickering-overlay {
     animation: fluorescent-fail 2s linear forwards;
 }
@@ -182,9 +182,9 @@ a:hover {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 30px; /* Fixed height helps with alignment */
+    height: 30px;
     overflow: hidden;
-    background: #ccd; /* Inverted colors for "Alert" look */
+    background: #ccd;
     color: #1a1a1a;   
     z-index: 10;
     
@@ -212,7 +212,6 @@ a:hover {
     left: 100%; 
 }
 
-/* The Animation Class (We add this in JS) */
 .scroll-across {
     animation: ticker-once 10s linear forwards; 
 }
@@ -228,8 +227,8 @@ a:hover {
     right: 15px;
     
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.7rem; /* Tiny text */
-    color: #444;       /* Very dim grey */
+    font-size: 0.7rem; 
+    color: #444;       
     
     z-index: 5; /* below ticker (which is z-index 10) */
     cursor: default;
@@ -256,6 +255,7 @@ a:hover {
     align-items: center;
     margin-bottom: 0.5rem;
     position: relative;
+    padding-right: 100px;
 }
 
 .title-text {
@@ -294,6 +294,8 @@ a:hover {
     margin-bottom: 0.5rem;
     font-weight: bold;
     text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
 .iss-footer {
@@ -313,10 +315,10 @@ a:hover {
     margin: 0;
     color: #444; /* Dim background map */
     font-family: 'Courier New', Courier, monospace;
-    line-height: 1.15; /* Tweak this if lines look gappy */
+    line-height: 1.15;
     font-weight: bold;
     overflow: hidden;
-    white-space: pre; /* Essential for ASCII alignment */
+    white-space: pre; /* fixes ascii layout... idk css is css */
 }
 
 /* Make the satellites glow */
@@ -448,7 +450,7 @@ a:hover {
 .weather-display {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #ff9d00; /* Amber monochrome monitor color */
+    color: #ff9d00;
     font-family: 'Courier New', Courier, monospace;
     margin: 10px 0;
 }

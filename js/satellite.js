@@ -202,6 +202,15 @@ const satContent = document.querySelector(".sat-content");
 const satTitle = document.querySelector(".iss-title");
 const satFooter = document.querySelector(".iss-footer");
 
+
+window.addEventListener("load", () => {
+    if (startCollapsed) {
+        isCollapsed = true;
+        if (satContent) satContent.style.display = "none";
+        if (collapseBtn) collapseBtn.innerText = "[ Expand ]";
+    }
+});
+
 // Initialize collapsed state
 if (isCollapsed) {
     satContent.style.display = "none";
@@ -219,7 +228,7 @@ if (collapseBtn && satContent) {
     collapseBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent the module click event
 
-        if (tooSmallScreen) {
+        if (tooSmallScreen && isCollapsed) {
             if (touchDevice) {
                 satTitle.innerText = "Rotate device to restore orbital telemetry.";
             } else {
