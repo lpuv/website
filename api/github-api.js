@@ -27,16 +27,29 @@ function checkRateLimit(ip) {
 }
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin || req.headers.referer;
+  // The referer includes a path and trailing slash, so compare parsed origins,
+  // not raw header strings. Otherwise Vercel previews get a 403.
+  const rawOrigin = req.headers.origin || req.headers.referer;
+  let origin = '';
+  try {
+    origin = new URL(rawOrigin).origin;
+  } catch {
+    origin = '';
+  }
+
   const allowedOrigins = [
     'https://craftcat.dev',
     'https://www.craftcat.dev',
     'http://localhost',
     'http://127.0.0.1',
   ];
-  const isVercelPreview = /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin || '');
+  const isVercelPreview = /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin);
 
-  if (origin && !isVercelPreview && !allowedOrigins.some((allowed) => origin.startsWith(allowed))) {
+  if (
+    origin &&
+    !isVercelPreview &&
+    !allowedOrigins.some((allowed) => origin === allowed || origin.startsWith(`${allowed}:`))
+  ) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
