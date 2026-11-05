@@ -1,0 +1,145 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Network operations — Luna Puvilland"
+  description="The full simulated network map from craftcat.dev: hosts, patch debt, malware, and the monitoring process."
+  code="net"
+>
+  <div class="wrap page-head">
+    <p class="eyebrow">Network</p>
+    <h1 class="page-head__title">The tank, bigger</h1>
+    <p class="page-head__sub">
+      The same simulated network as the homepage, with more room and more to look at.
+      Email-borne malware, lateral spread, quarantine, patch debt. None of it is live traffic.
+    </p>
+  </div>
+
+  <div class="wrap tank-page">
+    <section class="tank-stage" data-detail="true" aria-label="Simulated network map">
+      <canvas
+        id="tank"
+        class="tank-canvas"
+        tabindex="0"
+        role="group"
+        aria-label="Interactive network map. Use the arrow keys to select a host, then Enter to open it."
+        aria-describedby="tank-help"></canvas>
+      <div class="hero__grain" aria-hidden="true"></div>
+      <div class="hero__scan" aria-hidden="true"></div>
+
+      <div class="node-tip" id="node-tip" aria-hidden="true">
+        <span class="node-tip__kind" id="node-tip-kind">system record</span>
+        <span class="node-tip__label" id="node-tip-label">nix-lab</span>
+        <span class="node-tip__desc" id="node-tip-desc">Every host I run, rebuilt from one flake.</span>
+        <span class="node-tip__meta" id="node-tip-meta">NixOS · patch rolling</span>
+        <span class="node-tip__go" id="node-tip-go">open record →</span>
+      </div>
+    </section>
+
+    <p id="tank-help" class="sr-only">
+      This is a simulated network, not live traffic. Hosts are projects and the machines underneath
+      them. Attacks arrive as email attachments, spread over shares, and get quarantined. The table
+      below lists every host.
+    </p>
+    <p id="tank-announce" class="sr-only" aria-live="polite"></p>
+
+    <div class="tank-bar">
+      <div class="tank-bar__inner">
+        <span class="stat">
+          <span class="status-pill__dot" aria-hidden="true"></span>
+          simulated network
+        </span>
+        <span class="stat">hosts <b id="tank-hosts">10</b></span>
+        <span class="stat stat--threat">threat <b id="tank-threat">0%</b></span>
+        <span class="stat stat--patch">patch debt <b id="tank-patch" data-level="warn">—</b></span>
+        <span class="stat hide-sm">packets <b id="tank-packets">000</b></span>
+        <span class="stat hide-sm">state <b id="tank-state" data-level="ok">nominal</b></span>
+        <span class="spacer"></span>
+        <span class="stat hide-sm">montréal <b id="clock">--:--:--</b></span>
+        <button class="hero__pause" id="tank-pause" type="button" aria-pressed="false">
+          <svg class="icon-pause" viewBox="0 0 12 12" aria-hidden="true">
+            <rect x="2" y="1.5" width="2.5" height="9" fill="currentColor"></rect>
+            <rect x="7.5" y="1.5" width="2.5" height="9" fill="currentColor"></rect>
+          </svg>
+          <svg class="icon-play" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M3 1.5 10 6l-7 4.5Z" fill="currentColor"></path>
+          </svg>
+          <span data-label>pause</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="tank-grid">
+      <section class="tank-panel" aria-labelledby="hosts-title">
+        <div class="tank-panel__head">
+          <h2 id="hosts-title">hosts</h2>
+          <span>state · load · patch</span>
+        </div>
+        <div class="host-table-wrap">
+          <table class="host-table">
+            <thead>
+              <tr>
+                <th scope="col">host</th>
+                <th scope="col">os</th>
+                <th scope="col">patch</th>
+                <th scope="col">state</th>
+                <th scope="col">load</th>
+                <th scope="col">virus</th>
+              </tr>
+            </thead>
+            <tbody id="tank-hosts-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tank-panel" aria-labelledby="log-title">
+        <div class="tank-panel__head">
+          <h2 id="log-title">event log</h2>
+          <span>newest first</span>
+        </div>
+        <ol class="tank-log" id="tank-log"></ol>
+      </section>
+    </div>
+
+    <section class="tank-legend" aria-labelledby="legend-title">
+      <h2 id="legend-title">legend</h2>
+      <ul>
+        <li><span class="legend-shape legend-shape--core" aria-hidden="true"></span> core</li>
+        <li><span class="legend-shape legend-shape--system" aria-hidden="true"></span> system</li>
+        <li><span class="legend-shape legend-shape--external" aria-hidden="true"></span> repository</li>
+        <li><span class="legend-dot legend-dot--clean" aria-hidden="true"></span> clean</li>
+        <li><span class="legend-dot legend-dot--infected" aria-hidden="true"></span> infected</li>
+        <li><span class="legend-dot legend-dot--quarantined" aria-hidden="true"></span> quarantined</li>
+        <li><span class="legend-dot legend-dot--crashed" aria-hidden="true"></span> offline</li>
+      </ul>
+    </section>
+
+    <p class="tank-note">
+      The network is simulated. The hosts and the work are real; the attacks are a visualisation.
+      The tank is a nod to <a href="https://xkcd.com/350/" rel="noopener noreferrer">xkcd #350</a>.
+      <a href="/">Back to the homepage</a>
+    </p>
+  </div>
+
+  <script>
+    import { initTank } from '../scripts/tank';
+
+    initTank();
+
+    const clock = document.getElementById('clock');
+    const tick = () => {
+      if (!clock) return;
+      clock.textContent = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Toronto',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(new Date());
+    };
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</Base>

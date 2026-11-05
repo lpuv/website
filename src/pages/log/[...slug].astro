@@ -1,0 +1,42 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('log');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const fmt = (date: Date) =>
+  new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+---
+
+<Base title={`${post.data.title} — Luna Puvilland`} description={post.data.summary}>
+  <div class="read-progress" aria-hidden="true">
+    <div class="read-progress__bar" data-read-progress></div>
+  </div>
+
+  <div class="wrap page-head">
+    <p class="eyebrow">Log · {fmt(post.data.date)}</p>
+    <h1 class="page-head__title">{post.data.title}</h1>
+    <p class="page-head__sub">{post.data.summary}</p>
+  </div>
+
+  <div class="wrap page-body">
+    <div class="prose">
+      <Content />
+    </div>
+
+    <div class="record-nav no-print">
+      <a href="/log">
+        <span class="record-nav__label">Back</span>
+        <span class="record-nav__title">← All entries</span>
+      </a>
+      <span class="loglist__tags">
+        {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+      </span>
+    </div>
+  </div>
+</Base>

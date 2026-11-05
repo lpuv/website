@@ -1,0 +1,225 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Resume — Luna Puvilland"
+  description="Luna Puvilland — computer engineering undergrad at McGill. C&DH lead for the Orbital CubeSat, infrastructure and security."
+>
+  <div class="wrap page-head no-print">
+    <p class="eyebrow">Resume</p>
+    <h1 class="page-head__title">Resume</h1>
+    <p class="page-head__sub">
+      Same content as the rest of the site, formatted for people who ask for a PDF.
+    </p>
+  </div>
+
+  <div class="wrap paper-wrap">
+    <div class="paper__actions no-print">
+      <button class="btn btn--primary" type="button" id="print-resume">
+        Print / save as PDF <span class="btn__arrow" aria-hidden="true">↓</span>
+      </button>
+      <a class="btn" href="mailto:luna@craftcat.dev">Email</a>
+      <a class="btn" href="https://github.com/lpuv" rel="me">GitHub ↗</a>
+    </div>
+
+    <article class="paper">
+      <header class="paper__head">
+        <div>
+          <h2 class="paper__name">Luna Sonlam Puvilland</h2>
+          <p class="paper__role">Computer Engineering · McGill University · Class of 2029</p>
+        </div>
+        <div class="paper__contact">
+          <a href="mailto:luna@craftcat.dev">luna@craftcat.dev</a><br />
+          <a href="https://github.com/lpuv">github.com/lpuv</a><br />
+          Montréal, QC
+        </div>
+      </header>
+
+      <div class="doc-block">
+        <h2>Summary</h2>
+        <p>
+          Computer engineering student at McGill, C&amp;DH lead for the Orbital CubeSat, and
+          infrastructure volunteer at Fedora. I build systems that stay up, and I take old
+          software apart to see how it breaks. Security work is the other half, mostly CTFs and
+          red-team labs.
+        </p>
+      </div>
+
+      <div class="doc-block">
+        <h2>Education</h2>
+        <div class="entry">
+          <div class="entry__line">
+            <h3>B.Eng. Computer Engineering — McGill University</h3>
+            <span class="entry__meta">Class of 2029</span>
+          </div>
+          <span class="entry__org">Montréal, QC · GPA 3.4</span>
+        </div>
+        <div class="entry">
+          <div class="entry__line">
+            <h3>IB Diploma — Eagle Rock High School</h3>
+            <span class="entry__meta">2024 — 2025</span>
+          </div>
+          <span class="entry__org">Los Angeles, CA</span>
+          <p class="entry__note">
+            AP Computer Science A (5), French (5), Physics A (4), Calculus AB (4), Chemistry (4).
+          </p>
+        </div>
+      </div>
+
+      <div class="doc-block">
+        <h2>Experience</h2>
+
+        <div class="entry">
+          <div class="entry__line">
+            <h3>Command and Data Handling Lead — McGill Rocket Team: CubeSat Division</h3>
+            <span class="entry__meta">Sep 2025 — present</span>
+          </div>
+          <span class="entry__org">McGill University</span>
+          <ul>
+            <li>Lead the C&amp;DH division for McGill's Orbital CubeSat.</li>
+            <li>Own the firmware and software stack on the TMS570LS0714PZQ core MCU.</li>
+            <li>
+              Direct data intake from auxiliary systems and manage the division's DevOps
+              workflows.
+            </li>
+            <li>Program a barebones operating system for the onboard TI microcontroller.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry__line">
+            <h3>Software Engineering Intern — Cerbrec Inc.</h3>
+            <span class="entry__meta">May 2025 — Jul 2025</span>
+          </div>
+          <span class="entry__org">Graphbook</span>
+          <ul>
+            <li>
+              Translated operations from shared libraries such as Scikit into Graphbook's
+              custom language and interface.
+            </li>
+            <li>
+              Implemented diagonalization, covariance matrix calculation, and dataset
+              standardization.
+            </li>
+            <li>Integrated the Principal Component Analysis algorithm.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry__line">
+            <h3>Infrastructure Volunteer &amp; Packager — Fedora Project</h3>
+            <span class="entry__meta">Dec 2021 — present</span>
+          </div>
+          <span class="entry__org">Open source</span>
+          <ul>
+            <li>Package software tools and submit them to official Fedora repositories.</li>
+            <li>Resolve tickets and manage project resources in the Ansible-based infrastructure.</li>
+            <li>Deploy applications to project servers using Kubernetes and OpenShift.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry__line">
+            <h3>IT Volunteer — Eagle Rock High School</h3>
+            <span class="entry__meta">Sep 2024 — May 2025</span>
+          </div>
+          <span class="entry__org">Los Angeles, CA</span>
+          <ul>
+            <li>Built an asset management website for the IT office's Chromebook checkout process.</li>
+            <li>Implemented student ID scanning and automated SMS reminders for overdue assets.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry__line">
+            <h3>Penetration Testing &amp; Systems Admin — TryHackMe / HackTheBox</h3>
+            <span class="entry__meta">Dec 2017 — present</span>
+          </div>
+          <span class="entry__org">Self-directed</span>
+          <ul>
+            <li>Completed the Red Teamer Capstone against a simulated 17-host corporate network.</li>
+            <li>Top 1% of TryHackMe users; authored challenges for TryHackMe and McGill's CTF.</li>
+            <li>
+              Administer Linux and Unix systems with a focus on virtualized applications and
+              simulated high-availability Kubernetes environments.
+            </li>
+            <li>Configure and integrate servers with Ansible in containers, deploying via OpenShift.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="doc-block">
+        <h2>Technical Skills</h2>
+        <table class="spec--paper">
+          <tbody>
+            <tr>
+              <th scope="row">Languages</th>
+              <td>Python, C, C++, JavaScript, Java, Swift, Node.js</td>
+            </tr>
+            <tr>
+              <th scope="row">Infrastructure</th>
+              <td>
+                Linux, Kubernetes, Ansible, OpenShift, Proxmox, NixOS, Docker, Git, Azure DevOps,
+                Jira
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Embedded</th>
+              <td>TMS570, JTAG debugging, oscilloscopes, MATLAB/Simulink</td>
+            </tr>
+            <tr>
+              <th scope="row">Security</th>
+              <td>Penetration testing, CTF, vulnerability research, least-privilege design</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-block">
+        <h2>Selected Projects</h2>
+        <ul>
+          <li>
+            <strong>Orbital CubeSat C&amp;DH</strong> — Firmware and software stack for the
+            TMS570 onboard computer.
+          </li>
+          <li>
+            <strong>nix-lab</strong> — Single-flake NixOS homelab; every host reproducible, every
+            change reversible.
+          </li>
+          <li>
+            <strong>grimoire</strong> — Blood on the Clocktower bot for Discord, replacing
+            Bureaucrat.
+          </li>
+          <li>
+            <strong>CVE-2012-2982</strong> — End-to-end reproduction and exploit of a Webmin
+            authenticated RCE.
+          </li>
+          <li>
+            <strong>evil-tetris</strong> — A deliberately hostile Tetris clone in Godot.
+          </li>
+        </ul>
+        <p style="margin-top: 0.8rem;">
+          <a href="/systems">Full system records →</a>
+        </p>
+      </div>
+
+      <div class="doc-block">
+        <h2>Awards</h2>
+        <ul>
+          <li>1st Place, CTF Introduction Course — DEF CON 31 (2023).</li>
+          <li>Enigma Award — US Space and Rocket Center Cyber Camp (Jun 2023).</li>
+          <li>Capstone Awards — TryHackMe (2021–2023).</li>
+        </ul>
+      </div>
+
+      <p class="paper__foot">
+        Montréal, QC · luna@craftcat.dev · github.com/lpuv
+      </p>
+    </article>
+  </div>
+</Base>
+
+<script>
+  document.getElementById('print-resume')?.addEventListener('click', () => window.print());
+</script>

@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+
+const channels = [
+  {
+    label: 'Email',
+    value: 'luna@craftcat.dev',
+    href: 'mailto:luna@craftcat.dev',
+    note: 'Fastest way to reach me.',
+  },
+  {
+    label: 'GitHub',
+    value: 'github.com/lpuv',
+    href: 'https://github.com/lpuv',
+    note: 'Code and commit history.',
+  },
+  {
+    label: 'LinkedIn',
+    value: 'linkedin.com/in/luna-puvilland-41252738b',
+    href: 'https://www.linkedin.com/in/luna-puvilland-41252738b',
+    note: 'The professional one.',
+  },
+  {
+    label: 'TryHackMe',
+    value: 'tryhackme.com/p/lunapuv',
+    href: 'https://tryhackme.com/p/lunapuv',
+    note: 'Labs, CTFs, and the challenges I wrote.',
+  },
+  {
+    label: 'Resume',
+    value: 'craftcat.dev/resume',
+    href: '/resume',
+    note: 'The formal record, printable.',
+  },
+  {
+    label: 'Location',
+    value: 'Montréal, QC',
+    href: 'https://www.openstreetmap.org/relation/1102816',
+    note: 'Eastern time. Usually replies within a day.',
+  },
+];
+---
+
+<Base
+  title="Contact — Luna Puvilland"
+  description="Get in touch with Luna Puvilland — email, GitHub, LinkedIn, TryHackMe, and resume."
+>
+  <div class="wrap page-head">
+    <p class="eyebrow">Contact</p>
+    <h1 class="page-head__title">Get in touch</h1>
+    <p class="page-head__sub">
+      Open to internships and interesting infrastructure or security problems. Email is the reliable one.
+    </p>
+    <a class="contact-mail" href="mailto:luna@craftcat.dev">luna@craftcat.dev</a>
+  </div>
+
+  <div class="wrap page-body">
+    <form
+      class="compose"
+      id="compose"
+      action="mailto:luna@craftcat.dev"
+      method="post"
+      enctype="text/plain"
+    >
+      <div class="compose__head">
+        <span>compose · new packet</span>
+        <b>to: luna@craftcat.dev</b>
+      </div>
+
+      <div class="compose__grid">
+        <label class="compose__field">
+          <span>from</span>
+          <input
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            maxlength="80"
+            placeholder="your name"
+          />
+        </label>
+        <label class="compose__field">
+          <span>return path</span>
+          <input
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="120"
+            placeholder="you@example.com"
+          />
+        </label>
+      </div>
+
+      <label class="compose__field">
+        <span>payload</span>
+        <textarea
+          name="message"
+          rows="6"
+          required
+          maxlength="4000"
+          placeholder="what you're working on, or what you want to talk about"></textarea>
+      </label>
+
+      <div class="compose__foot">
+        <button class="btn btn--primary" type="submit">
+          transmit <span aria-hidden="true">→</span>
+        </button>
+        <p class="compose__status" id="compose-status" aria-live="polite">
+          this opens your mail client. no backend, no tracking.
+        </p>
+      </div>
+    </form>
+
+    <div class="channels">
+      {channels.map((channel) => (
+        <a
+          class="channel"
+          href={channel.href}
+          rel={channel.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+        >
+          <span class="channel__label">{channel.label}</span>
+          <span class="channel__value">{channel.value}</span>
+          <span class="channel__note">{channel.note}</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="mono faint" style="margin-top: 2.5rem; font-size: 0.7rem; letter-spacing: 0.06em;">
+      The form just opens your mail client. Email is still the reliable one.
+    </p>
+  </div>
+
+  <script>
+    const form = document.querySelector<HTMLFormElement>('#compose');
+    const status = document.getElementById('compose-status');
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const data = new FormData(form);
+      const name = String(data.get('name') ?? '').trim();
+      const email = String(data.get('email') ?? '').trim();
+      const message = String(data.get('message') ?? '').trim();
+
+      const url = new URL('mailto:luna@craftcat.dev');
+      url.searchParams.set('subject', `craftcat.dev · ${name}`);
+      url.searchParams.set('body', `${message}\n\n— ${name}\n${email}`);
+
+      const link = document.createElement('a');
+      link.href = url.href;
+      link.rel = 'noopener noreferrer';
+      link.click();
+
+      if (status) {
+        status.textContent = 'opening your mail client. if nothing happens, email luna@craftcat.dev.';
+      }
+    });
+  </script>
+</Base>

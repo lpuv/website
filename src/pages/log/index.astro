@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const posts = (await getCollection('log'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const fmt = (date: Date) =>
+  new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: '2-digit' }).format(date);
+---
+
+<Base
+  title="Log — Luna Puvilland"
+  description="Writeups on infrastructure, security, and things that broke."
+>
+  <div class="wrap page-head">
+    <p class="eyebrow">Log</p>
+    <h1 class="page-head__title">Notes</h1>
+    <p class="page-head__sub">
+      Writeups and post-mortems. Mostly infrastructure and security decisions I made and then had
+      to live with.
+    </p>
+  </div>
+
+  <div class="wrap page-body">
+    {posts.length === 0 ? (
+      <p class="mono faint">No entries yet.</p>
+    ) : (
+      <ul class="loglist">
+        {posts.map((post) => (
+          <li>
+            <a class="loglist__item" href={`/log/${post.id}/`}>
+              <span class="loglist__date">{fmt(post.data.date)}</span>
+              <span class="loglist__body">
+                <span class="loglist__title">{post.data.title}</span>
+                <span class="loglist__summary">{post.data.summary}</span>
+              </span>
+              <span class="loglist__tags">
+                {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Base>

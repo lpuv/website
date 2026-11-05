@@ -1,0 +1,93 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const systems = (await getCollection('systems')).sort((a, b) => a.data.order - b.data.order);
+  return systems.map((entry, index) => ({
+    params: { slug: entry.id },
+    props: {
+      entry,
+      prev: systems[index - 1] ?? null,
+      next: systems[index + 1] ?? null,
+    },
+  }));
+}
+
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const { title, designation, summary, role, period, status, stack, repo, live } = entry.data;
+---
+
+<Base title={`${title} — Luna Puvilland`} description={summary}>
+  <div class="read-progress" aria-hidden="true">
+    <div class="read-progress__bar" data-read-progress></div>
+  </div>
+
+  <div class="wrap page-head">
+    <p class="eyebrow">{designation} · {status}</p>
+    <h1 class="page-head__title">{title}</h1>
+    <p class="page-head__sub">{summary}</p>
+  </div>
+
+  <div class="wrap page-body">
+    <div class="record">
+      <aside class="record__spec no-print" aria-label="Record details">
+        <table class="spec">
+          <tbody>
+            <tr><th scope="row">Role</th><td>{role}</td></tr>
+            <tr><th scope="row">Period</th><td>{period}</td></tr>
+            <tr>
+              <th scope="row">Status</th>
+              <td><span class="status-chip" data-status={status}>{status}</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Stack</th>
+              <td>
+                <div class="card__tags">
+                  {stack.map((tag) => <span class="tag">{tag}</span>)}
+                </div>
+              </td>
+            </tr>
+            {repo && (
+              <tr>
+                <th scope="row">Source</th>
+                <td><a href={repo} rel="noopener noreferrer">Repository ↗</a></td>
+              </tr>
+            )}
+            {live && (
+              <tr>
+                <th scope="row">Live</th>
+                <td><a href={live} rel="noopener noreferrer">Deployment ↗</a></td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        <a class="record__back" href="/systems">← All systems</a>
+      </aside>
+
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+
+    <nav class="record-nav no-print" aria-label="More systems">
+      {prev ? (
+        <a href={`/systems/${prev.id}/`}>
+          <span class="record-nav__label">Previous</span>
+          <span class="record-nav__title">← {prev.data.title}</span>
+        </a>
+      ) : (
+        <span></span>
+      )}
+      {next ? (
+        <a href={`/systems/${next.id}/`} class="record-nav__next">
+          <span class="record-nav__label">Next</span>
+          <span class="record-nav__title">{next.data.title} →</span>
+        </a>
+      ) : (
+        <span></span>
+      )}
+    </nav>
+  </div>
+</Base>
