@@ -62,8 +62,9 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Rate limit exceeded. Try again later.' });
   }
 
-  const { username } = req.query;
-  if (!username) return res.status(400).json({ error: 'Username required' });
+  // Personal-site proxy, not a general GitHub API. Ignore the query param so
+  // this cannot be used to spend the token on arbitrary users.
+  const username = 'lpuv';
 
   const token = process.env.GITHUB_KEY;
 
