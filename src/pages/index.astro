@@ -1,341 +1,164 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import SystemCard from '../components/SystemCard.astro';
 
 const allSystems = (await getCollection('systems')).sort((a, b) => a.data.order - b.data.order);
-const systems = allSystems.filter((entry) => entry.data.featured);
+
+/** The map shows the machines that actually relate to each other. */
+const bySlug = Object.fromEntries(allSystems.map((s) => [s.id, s]));
+const map = [
+  { id: 'core', label: 'pinwheel', kind: 'the machine', r: 9, w: 2.6,
+    desc: 'One Proxmox host. Twelve NixOS containers on top of it. Everything else here runs on this.' },
+  { id: 'nix-lab', r: 6, w: 1 },
+  { id: 'rocket-cdh', r: 6, w: 1 },
+  { id: 'fedora', r: 6, w: 1 },
+  { id: 'cve-2012-2982', r: 6, w: 1 },
+  { id: 'evil-tetris', r: 6, w: 1 },
+].map((n) => {
+  if (n.id === 'core') return n;
+  const entry = bySlug[n.id];
+  return {
+    ...n,
+    label: entry?.data.title ?? n.id,
+    kind: entry?.data.designation ?? 'record',
+    desc: entry?.data.summary ?? '',
+  };
+});
+
+const links = [
+  ['core', 'nix-lab'], ['core', 'rocket-cdh'], ['core', 'fedora'],
+  ['core', 'cve-2012-2982'], ['core', 'evil-tetris'],
+  ['nix-lab', 'fedora'], ['nix-lab', 'cve-2012-2982'],
+  ['rocket-cdh', 'cve-2012-2982'], ['evil-tetris', 'cve-2012-2982'],
+];
+
+const featured = allSystems.filter((s) => s.data.featured);
+const list = (featured.length ? featured : allSystems).slice(0, 6);
 ---
 
 <Base title="Luna Puvilland — craftcat.dev">
-  <section class="hero" aria-labelledby="hero-name">
-    <div class="hero__stage">
-      <canvas
-        id="tank"
-        class="hero__canvas"
-        tabindex="0"
-        role="group"
-        aria-label="Interactive network map of Luna's projects. Use the arrow keys to select a host, then Enter to open it."
-        aria-describedby="tank-help"></canvas>
-      <div class="hero__grain" aria-hidden="true"></div>
-      <div class="hero__scan" aria-hidden="true"></div>
-      <div class="hero__scrim" aria-hidden="true"></div>
-      <a class="hero__hint" id="tank-hint" href="/tank">open the network view →</a>
-    </div>
-
-    <p id="tank-help" class="sr-only">
-      This is a simulated network, not live traffic. Most hosts are projects; the core and the
-      Proxmox box are the machines underneath. Attacks arrive as email attachments, spread over
-      shares, and get quarantined. Click a host to open its record, or rest on the background to
-      open the full network view. Every project is also listed below the map.
-    </p>
-    <p id="tank-announce" class="sr-only" aria-live="polite"></p>
-
-    <aside class="hero__feed" aria-label="Simulated network event feed">
-      <div class="hero__feed-head">
-        <span>network events</span>
-        <b>simulated</b>
-      </div>
-      <p class="hero__feed-sub">attacks · shares · monitoring</p>
-      <ul class="feed-list" id="tank-feed">
-        <li data-level="signal"><time>--:--:--</time><span>network online</span></li>
-        <li><time>--:--:--</time><span>10 hosts reachable</span></li>
-      </ul>
-    </aside>
-
-    <div class="node-tip" id="node-tip" aria-hidden="true">
-      <span class="node-tip__kind" id="node-tip-kind">system record</span>
-      <span class="node-tip__label" id="node-tip-label">nix-lab</span>
-      <span class="node-tip__desc" id="node-tip-desc">Every host I run, rebuilt from one flake.</span>
-      <span class="node-tip__meta" id="node-tip-meta">NixOS · patch rolling</span>
-      <span class="node-tip__go" id="node-tip-go">open record →</span>
-    </div>
-
+  <section class="hero">
     <div class="wrap hero__wrap">
-      <div class="hero__content">
-        <p class="hero__kicker">
-          <span>Montréal</span>
-          <span class="dot" aria-hidden="true"></span>
-          <span>McGill Computer Engineering</span>
-          <span class="dot" aria-hidden="true"></span>
-          <span>Undergrad</span>
-        </p>
+      <p class="hero__kicker">
+        <span class="dot" aria-hidden="true"></span>
+        Open to internships · Montréal
+      </p>
 
-      <h1 class="hero__name" id="hero-name">Luna<br />Puvilland</h1>
+      <h1 class="hero__name">I build systems that have to <em>keep running.</em></h1>
 
       <p class="hero__lede">
-        I do security by breaking things: CTFs, red-team labs, and old software. C&amp;DH lead on
-        McGill's Orbital CubeSat otherwise.
+        Satellite firmware, a homelab rebuilt from one flake, Fedora packages in
+        official repos. And I take old software apart to see how it breaks.
       </p>
 
       <ul class="actions hero__actions">
-        <li>
-          <a class="btn btn--primary" href="/systems">
-            Systems <span class="btn__arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
+        <li><a class="btn btn--primary" href="#work">See the work <span class="btn__arrow" aria-hidden="true">→</span></a></li>
         <li><a class="btn" href="/resume">Resume</a></li>
-        <li><a class="btn" href="https://github.com/lpuv" rel="me">GitHub ↗</a></li>
+        <li><a class="btn" href="/contact">Get in touch</a></li>
       </ul>
 
-      <p class="hero__more"><a href="/tank">open the full network view →</a></p>
+      <p class="hero__more">Grab a machine and pull</p>
+    </div>
+
+    <div class="hero__stage">
+      <div class="depth" role="group" aria-label="Map depth">
+        <button id="depth-map" type="button" aria-pressed="true">map</button>
+        <button id="depth-run" type="button" aria-pressed="false">the tank</button>
       </div>
+
+      <div class="tankhead" id="tankhead" hidden>
+        <span class="tankhead__k">the tank</span>
+        <h2 class="tankhead__t">Twelve VMs, no patches</h2>
+        <p class="tankhead__d">They run whatever arrives by email and share files with each other. A monitor wipes infected machines and rebuilds them at random. Watch the orange ones — those are the viruses.</p>
+        <div class="legend">
+          <span><i class="lg-clean"></i>clean</span>
+          <span><i class="lg-inf"></i>infected</span>
+          <span><i class="lg-wip"></i>wiped</span>
+        </div>
+      </div>
+
+      <canvas
+        id="map"
+        class="hero__canvas"
+        tabindex="0"
+        role="application"
+        aria-label="A live map of Luna's projects. Drag any machine to move it. Arrow keys cycle through machines."
+        aria-describedby="map-help"
+        data-nodes={JSON.stringify(map)}
+        data-links={JSON.stringify(links)}></canvas>
+
+      <div class="hero__hint">
+        <div class="hero__hint-body" aria-live="polite">
+          <span class="node-tip__kind" id="ro-kind">the machine</span>
+          <span class="node-tip__label" id="ro-label">pinwheel</span>
+          <span class="node-tip__desc" id="ro-desc">One Proxmox host. Twelve NixOS containers on top of it. Everything else here runs on this.</span>
+        </div>
+        <span class="node-tip__go" id="ro-hint">drag to move · “the tank” opens the network</span>
+        <ul class="maplog" id="map-log" aria-live="polite"></ul>
+      </div>
+
+      <p id="map-help" class="sr-only">
+        This is a map of the machines Luna runs. pinwheel is the Proxmox host at the centre;
+        the projects connect to it and to each other. Every project is also listed below the map.
+      </p>
+      <ul class="sr-only">
+        {map.filter((n) => n.id !== 'core').map((n) => (
+          <li>{n.label} — {n.kind}: {n.desc}</li>
+        ))}
+      </ul>
     </div>
 
     <div class="hero__status">
       <div class="wrap hero__status-inner">
-        <span class="stat">
-          <span class="status-pill__dot" aria-hidden="true"></span>
-          simulated network
-        </span>
-        <span class="stat">hosts <b id="tank-hosts">10</b></span>
-        <span class="stat stat--threat">threat <b id="tank-threat">0%</b></span>
-        <span class="stat hide-sm stat--optional stat--patch">
-          patch debt <b id="tank-patch" data-level="warn">—</b>
-        </span>
-        <span class="stat hide-sm stat--optional">packets <b id="tank-packets">000</b></span>
-        <span class="stat hide-sm">state <b id="tank-state" data-level="ok">nominal</b></span>
+        <span class="stat" id="stat-hosts">{map.length - 1} projects on the map</span>
+        <span class="stat" id="stat-debt">{map.length - 1} machines</span>
         <span class="spacer"></span>
         <span class="stat hide-sm">montréal <b id="clock">--:--:--</b></span>
-        <button class="hero__pause" id="tank-pause" type="button" aria-pressed="false">
-          <svg class="icon-pause" viewBox="0 0 12 12" aria-hidden="true">
-            <rect x="2" y="1.5" width="2.5" height="9" fill="currentColor"></rect>
-            <rect x="7.5" y="1.5" width="2.5" height="9" fill="currentColor"></rect>
-          </svg>
-          <svg class="icon-play" viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M3 1.5 10 6l-7 4.5Z" fill="currentColor"></path>
-          </svg>
-          <span data-label>pause</span>
-        </button>
+        <a class="stat" href="mailto:luna@craftcat.dev">luna@craftcat.dev</a>
       </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="systems-title">
+  <section class="section section--flush" id="work" aria-labelledby="work-title">
     <div class="wrap">
-      <div class="section__head reveal">
+      <div class="section__head">
         <div>
-          <p class="eyebrow">Systems</p>
-          <h2 class="section__title" id="systems-title">What I've built</h2>
+          <h2 class="section__title" id="work-title">What I've built</h2>
           <p class="section__sub">Infrastructure, security, and the things I build for fun.</p>
         </div>
         <a class="section__note" href="/systems">All {allSystems.length} records →</a>
       </div>
 
       <div class="cards">
-        {systems.map((entry, i) => (
-          <SystemCard
-            entry={entry}
-            index={i}
-            wide={i === systems.length - 1 && systems.length % 2 === 1}
-          />
+        {list.map((entry, i) => (
+          <a class="card" href={`/systems/${entry.id}/`}>
+            <span class="card__index">{String(i + 1).padStart(2, '0')}</span>
+            <span class="card__title">{entry.data.title}</span>
+            <span class="card__desc">{entry.data.summary}</span>
+            <span class="card__go">{entry.data.status}</span>
+          </a>
         ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--flush" aria-labelledby="telemetry-title">
-    <div class="wrap">
-      <div class="section__head reveal">
-        <div>
-          <p class="eyebrow">Telemetry</p>
-          <h2 class="section__title" id="telemetry-title">Right now</h2>
-        </div>
-        <span class="section__note">GitHub API · local clock</span>
-      </div>
-
-      <div class="console reveal">
-        <div class="panel">
-          <div class="panel__head">
-            <span>recent commits</span>
-            <b id="git-status">connecting</b>
-          </div>
-          <ul class="gitlog" id="git-log">
-            <li class="gitlog__empty">Fetching recent commits…</li>
-          </ul>
-        </div>
-
-        <div class="panel">
-          <div class="panel__head">
-            <span>local time</span>
-            <b>Montréal</b>
-          </div>
-          <p class="clock" id="local-time">--:--:--</p>
-          <p class="clock__meta" id="local-date">—</p>
-        </div>
-
-        <div class="panel">
-          <div class="panel__head">
-            <span>status</span>
-            <b>open</b>
-          </div>
-          <div class="panel__body">
-            <p class="panel__big">C&amp;DH lead, Orbital CubeSat.</p>
-            <p class="dim" style="font-size: 0.86rem;">
-              Open to internships. Infrastructure, security, or anything that has to keep running.
-            </p>
-            <a class="panel__link" href="/contact">Get in touch →</a>
-          </div>
-        </div>
       </div>
     </div>
   </section>
 </Base>
 
 <script>
-  import { initTank } from '../scripts/tank';
+  import { initMap } from '../scripts/map';
 
-  initTank();
+  initMap();
 
-  // --- clocks -------------------------------------------------------------
   const clock = document.getElementById('clock');
-  const localTime = document.getElementById('local-time');
-  const localDate = document.getElementById('local-date');
-
   const tick = () => {
-    const now = new Date();
-    const time = new Intl.DateTimeFormat('en-CA', {
+    if (!clock) return;
+    clock.textContent = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'America/Toronto',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       hour12: false,
-    }).format(now);
-
-    if (clock) clock.textContent = time;
-    if (localTime) localTime.textContent = time;
-    if (localDate) {
-      localDate.textContent = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'America/Toronto',
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(now);
-    }
+    }).format(new Date());
   };
-
   tick();
   setInterval(tick, 1000);
-
-  // --- recent commits -----------------------------------------------------
-  // Prefer the Vercel proxy (token-backed, cached). Fall back to the public
-  // API on a static dev server, then to a link so the panel never looks broken.
-  interface PushEvent {
-    type: string;
-    created_at: string;
-    repo: { name: string };
-    payload?: {
-      head?: string;
-      commits?: Array<{ sha: string; message: string }>;
-    };
-    _enriched?: { message?: string };
-  }
-
-  interface CommitItem {
-    message: string;
-    repo: string;
-    url: string;
-    when: string;
-  }
-
-  const list = document.getElementById('git-log');
-  const status = document.getElementById('git-status');
-
-  const relative = (iso: string): string => {
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.round(diff / 60000);
-    if (mins < 60) return `${Math.max(mins, 1)}m ago`;
-    const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.round(hours / 24)}d ago`;
-  };
-
-  const render = (items: CommitItem[]) => {
-    if (!list) return;
-    list.replaceChildren(
-      ...items.map((item) => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = item.url;
-        a.rel = 'noopener noreferrer';
-        a.textContent = item.message;
-        const meta = document.createElement('span');
-        meta.className = 'gitlog__meta';
-        meta.textContent = `${item.repo} · ${item.when}`;
-        li.append(a, meta);
-        return li;
-      }),
-    );
-  };
-
-  const loadCommits = async () => {
-    const sources = [
-      '/api/github-api?username=lpuv',
-      'https://api.github.com/users/lpuv/events/public?per_page=30',
-    ];
-
-    for (const source of sources) {
-      try {
-        const response = await fetch(source, {
-          headers: { Accept: 'application/vnd.github+json' },
-        });
-        if (!response.ok) throw new Error(String(response.status));
-
-        const events = (await response.json()) as PushEvent[];
-        const commits = events
-          .filter((event) => event.type === 'PushEvent')
-          .flatMap((event) => {
-            const repo = event.repo.name.replace('lpuv/', '');
-            const when = relative(event.created_at);
-            const items: CommitItem[] = (event.payload?.commits ?? [])
-              .slice(0, 2)
-              .map((commit) => ({
-                message: (commit.message ?? '').split('\n')[0].slice(0, 72),
-                repo,
-                url: `https://github.com/${event.repo.name}/commit/${commit.sha}`,
-                when,
-              }));
-
-            if (!items.length && event._enriched?.message && event.payload?.head) {
-              items.push({
-                message: event._enriched.message.split('\n')[0].slice(0, 72),
-                repo,
-                url: `https://github.com/${event.repo.name}/commit/${event.payload.head}`,
-                when,
-              });
-            }
-
-            return items;
-          })
-          .slice(0, 6);
-
-        if (!commits.length) throw new Error('no pushes');
-        render(commits);
-        if (status) status.textContent = 'online';
-        return;
-      } catch {
-        // Try the next source.
-      }
-    }
-
-    if (status) {
-      status.textContent = 'offline';
-      status.dataset.state = 'offline';
-    }
-    if (list) {
-      list.replaceChildren();
-      const li = document.createElement('li');
-      li.className = 'gitlog__empty';
-      li.append('Signal lost. ');
-      const a = document.createElement('a');
-      a.href = 'https://github.com/lpuv';
-      a.rel = 'me';
-      a.textContent = 'Read it at the source';
-      li.append(a, '.');
-      list.append(li);
-    }
-  };
-
-  loadCommits();
 </script>

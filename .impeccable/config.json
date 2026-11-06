@@ -1,0 +1,87 @@
+{
+  "hook": {
+    "enabled": true,
+    "limits": {
+      "maxFindings": 5,
+      "maxChars": 8000
+    }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "1.1rem",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:42.971Z",
+        "reason": "Agent: clamp() bound of the --gutter spacing token, not a literal type size"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.2rem",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:42.975Z",
+        "reason": "Agent: clamp() bound of a section margin, not a literal type size"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.4rem",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:42.978Z",
+        "reason": "Agent: clamp() bound of a hero margin, not a literal type size"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.5rem",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:42.981Z",
+        "reason": "Agent: clamp() bound of fluid type and padding, not a literal type size"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "2rem",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:42.984Z",
+        "reason": "Agent: clamp() bound of the fluid clock and paper name, not a literal type size"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "6rem",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:42.988Z",
+        "reason": "Agent: clamp() max of the mobile display override, documented as fluid display type"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fff",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:45.169Z",
+        "reason": "Agent: @media print block intentionally prints paper white; documented in DESIGN.md as a sanctioned print exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#000",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-11-05T23:01:45.173Z",
+        "reason": "Agent: @media print block intentionally prints ink black; documented in DESIGN.md as a sanctioned print exception"
+      }
+    ]
+  }
+}

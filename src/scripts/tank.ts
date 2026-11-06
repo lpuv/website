@@ -332,6 +332,13 @@ const SIGNAL: [number, number, number] = [110, 242, 192];
 const THREAT: [number, number, number] = [255, 95, 109];
 const AMBER: [number, number, number] = [255, 196, 107];
 const TEXT_DIM: [number, number, number] = [125, 135, 152];
+/**
+ * The network's structural blue-grey. Cooler and bluer than TEXT_DIM on
+ * purpose: it is the fabric the nodes sit on, not text, so it needs to read as
+ * structure rather than as a label. Used at low alpha for the grid tile and the
+ * resting edges.
+ */
+const STRUCTURE: [number, number, number] = [120, 150, 180];
 
 let MAX_INFECTED = 3;
 let MAX_GUESTS = 3;
@@ -524,7 +531,7 @@ export function initTank(): void {
     tile.height = 30;
     const tileCtx = tile.getContext('2d');
     if (tileCtx) {
-      tileCtx.fillStyle = 'rgba(120, 150, 180, 0.16)';
+      tileCtx.fillStyle = rgba(STRUCTURE, 0.16);
       tileCtx.fillRect(0, 0, 1, 1);
       gridPattern = ctx.createPattern(tile, 'repeat');
     }
@@ -1184,7 +1191,7 @@ export function initTank(): void {
       ctx.moveTo(a.sx, a.sy);
       ctx.lineTo(b.sx, b.sy);
       ctx.strokeStyle =
-        heat > 0.05 ? color : isHover ? rgba(SIGNAL, 0.55) : 'rgba(120, 150, 180, 0.26)';
+        heat > 0.05 ? color : isHover ? rgba(SIGNAL, 0.55) : rgba(STRUCTURE, 0.26);
       ctx.lineWidth = isHover ? 1.4 : 1;
       if (share) ctx.setLineDash([2, 4]);
       if (cut) ctx.setLineDash([3, 5]);
