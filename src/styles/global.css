@@ -37,6 +37,11 @@
   --topbar: 60px;
   --radius: 2px;
 
+  /* vertical rhythm: one scale, used by every band on the page */
+  --strip-h: 46px;
+  --section-y: clamp(2.6rem, 6vh, 4.5rem);
+  --head-y: clamp(2.4rem, 5.5vh, 4rem);
+
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   color-scheme: dark;
 }
@@ -63,7 +68,7 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -300,7 +305,7 @@ p { text-wrap: pretty; }
 
 .hero {
   position: relative;
-  min-height: calc(100svh - var(--topbar) - 46px);
+  min-height: calc(100svh - var(--topbar) - var(--strip-h));
   display: grid;
   grid-template-columns: minmax(0, 0.40fr) minmax(0, 0.60fr);
   align-items: center;
@@ -343,19 +348,19 @@ p { text-wrap: pretty; }
 .hero__name {
   font-size: clamp(2.5rem, 4.5vw, 4.35rem);
   line-height: 0.96;
-  letter-spacing: -0.042em;
+  letter-spacing: -0.04em;
   font-weight: 600;
   font-variation-settings: 'opsz' 64;
 }
 
-.hero__name em { font-style: normal; color: var(--text-3); font-weight: 300; }
+.hero__name em { font-style: normal; color: var(--text-3); font-weight: 400; }
 
 .hero__lede {
   margin-top: clamp(1rem, 2.4vh, 1.5rem);
   font-size: clamp(0.97rem, 1.1vw, 1.08rem);
   line-height: 1.58;
   color: var(--text-2);
-  max-width: 34ch;
+  max-width: 42ch;
 }
 
 .hero__lede strong { color: var(--text); font-weight: 600; }
@@ -499,7 +504,7 @@ p { text-wrap: pretty; }
   flex-wrap: wrap;
   align-items: center;
   gap: 1.5rem;
-  min-height: 46px;
+  min-height: var(--strip-h);
   padding-block: 0.4rem;
   font-family: var(--font-mono);
   font-size: 0.64rem;
@@ -541,7 +546,7 @@ p { text-wrap: pretty; }
 
 .section {
   position: relative;
-  padding-block: clamp(2.6rem, 7vh, 4.5rem);
+  padding-block: var(--section-y);
   border-top: 1px solid var(--line);
 }
 .section--flush { border-top: 0; }
@@ -562,7 +567,7 @@ p { text-wrap: pretty; }
 
 .section__sub {
   margin-top: 0.5rem;
-  max-width: 52ch;
+  max-width: 58ch;
   font-size: 1rem;
   color: var(--text-2);
 }
@@ -722,14 +727,14 @@ p { text-wrap: pretty; }
    -------------------------------------------------------------------------- */
 
 .page-head {
-  padding-block: clamp(2.4rem, 6vw, 4rem) clamp(1.6rem, 4vw, 2.6rem);
+  padding-block: var(--head-y) clamp(1.6rem, 4vh, 2.4rem);
   border-bottom: 1px solid var(--line);
 }
 
 .page-head__title {
   margin-top: 0.9rem;
   font-size: clamp(2.2rem, 5.4vw, 4rem);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
   line-height: 0.98;
 }
 .page-head__title:first-child { margin-top: 0; }
@@ -741,7 +746,7 @@ p { text-wrap: pretty; }
   color: var(--text-2);
 }
 
-.page-body { padding-block: clamp(2rem, 5vw, 3.6rem) clamp(3rem, 8vw, 6rem); }
+.page-body { padding-block: clamp(2rem, 4.5vh, 3.2rem) var(--section-y); }
 
 [hidden] { display: none !important; }
 
@@ -1052,7 +1057,7 @@ p { text-wrap: pretty; }
    Paper (resume) — the one warm sheet in the room
    -------------------------------------------------------------------------- */
 
-.paper-wrap { padding-block: clamp(2rem, 5vw, 3.6rem) clamp(3rem, 8vw, 6rem); }
+.paper-wrap { padding-block: clamp(2rem, 4.5vh, 3.2rem) var(--section-y); }
 
 /* The actions and the sheet share one column, and that column starts at the
    same edge as the page head. Centring the sheet inside a wider wrap gave the
@@ -1204,7 +1209,7 @@ p { text-wrap: pretty; }
    Footer
    -------------------------------------------------------------------------- */
 
-.footer { border-top: 1px solid var(--line); padding-block: clamp(2rem, 5vw, 3.2rem) 1.4rem; }
+.footer { border-top: 1px solid var(--line); padding-block: clamp(2rem, 4.5vh, 3.2rem) 1.4rem; }
 
 .footer__grid {
   display: grid;
@@ -1247,8 +1252,19 @@ p { text-wrap: pretty; }
    Reveal
    -------------------------------------------------------------------------- */
 
-.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+/* One authored moment: the work list arrives, staggered, once. Content is
+   visible by default; this only runs when JS is present and the row is in
+   view, and the layout script has a timeout that reveals anything left. */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+}
 .js .reveal.is-in { opacity: 1; transform: none; }
+.js .reveal[data-delay='1'] { transition-delay: 55ms; }
+.js .reveal[data-delay='2'] { transition-delay: 110ms; }
+.js .reveal[data-delay='3'] { transition-delay: 165ms; }
+.js .reveal[data-delay='4'] { transition-delay: 220ms; }
 
 /* --------------------------------------------------------------------------
    Responsive
@@ -1335,7 +1351,7 @@ p { text-wrap: pretty; }
    The tank
    -------------------------------------------------------------------------- */
 
-.tank { border-top: 1px solid var(--line); padding-block: clamp(2.6rem, 7vh, 4.5rem); }
+.tank { border-top: 1px solid var(--line); padding-block: var(--section-y); }
 
 .tank__head {
   display: flex;

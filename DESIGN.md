@@ -25,14 +25,14 @@ typography:
     fontSize: "clamp(2.5rem, 4.5vw, 4.35rem)"
     fontWeight: 600
     lineHeight: 0.96
-    letterSpacing: "-0.042em"
+    letterSpacing: "-0.04em"
     fontVariation: "'opsz' 64"
   headline:
     fontFamily: "Bricolage Grotesque Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(2.2rem, 5.4vw, 4rem)"
     fontWeight: 600
     lineHeight: 0.98
-    letterSpacing: "-0.045em"
+    letterSpacing: "-0.04em"
   title:
     fontFamily: "Bricolage Grotesque Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)"
@@ -130,7 +130,9 @@ spacing:
   sm: "0.5rem"
   md: "1rem"
   lg: "1.6rem"
-  section: "clamp(2.6rem, 7vh, 4.5rem)"
+  strip: "46px"
+  section: "clamp(2.6rem, 6vh, 4.5rem)"
+  head: "clamp(2.4rem, 5.5vh, 4rem)"
 components:
   button-default:
     backgroundColor: "transparent"
@@ -263,6 +265,8 @@ A warm near-black room, warm cream type, and one ember that is never decorative.
 
 **The Tracking Rule.** Mono labels are never set at normal tracking. Uppercase mono needs 0.06em minimum and 0.14em for eyebrows; below that it reads as cramped rather than measured.
 
+**The Tracking Floor.** Display and headline tracking never goes tighter than `-0.04em`. Past that the letterforms start colliding and the type reads as cramped rather than confident.
+
 ## Layout
 
 A single 1360px container inset by a fluid gutter of `clamp(1.3rem, 3.4vw, 3.2rem)`. No sidebar, no multi-column marketing grid.
@@ -271,7 +275,7 @@ The hero is **asymmetric and deliberate**: a 0.40fr text column hard-left, a 0.6
 
 The work list is a **list, not cards**: a four-column row of index, name, description, status, closed by a hairline, with the whole row as the link. Hovering indents it 0.7rem and darkens the ground.
 
-Section rhythm is `clamp(2.6rem, 7vh, 4.5rem)` of vertical padding between hairline rules. Page heads use their own tighter rhythm and close with a hairline.
+Section rhythm is one token, `--section-y: clamp(2.6rem, 6vh, 4.5rem)`, used by every band on the page so the vertical cadence holds across viewport shapes. Page heads use `--head-y`, and the hero's status strip is `--strip-h` rather than a magic number. Page heads use their own tighter rhythm and close with a hairline.
 
 Content pages use a two-column record layout: a fluid prose column plus a 250px sticky spec table, ordered second visually but first in the DOM on mobile. Collapses to one column at 980px.
 
