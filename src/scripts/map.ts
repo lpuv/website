@@ -120,14 +120,91 @@ export function initMap(): void {
   let selected: Node = core;
   let drag: { n: Node; px: number; py: number } | null = null;
 
-  /* ── depth 2: the tank ─────────────────────────────────── */
+  /* ── depth 2: the tank ──────────────────────────────────
+     A worm library, not a generic infection. Each entry is a real worm with
+     its real CVE and its real behaviour, so the simulation is a reconstruction
+     rather than a fiction. Facts verified against Microsoft bulletins and the
+     worms' own records; see the worm cards for sources.
+     ──────────────────────────────────────────────────────── */
+
+  interface Worm {
+    id: string;
+    name: string;
+    year: string;
+    cve: string;
+    bulletin: string;
+    vector: string;
+    /** ticks between spread attempts — lower is faster */
+    spread: number;
+    /** what it does to the host it lands on */
+    effect: 'none' | 'crash' | 'shutdown' | 'cure';
+    note: string;
+  }
+
+  const WORMS: Worm[] = [
+    {
+      id: 'slammer', name: 'SQL Slammer', year: '2003',
+      cve: 'CVE-2002-0649', bulletin: 'MS02-039',
+      vector: 'UDP 1434 · SQL Resolution Service',
+      spread: 30, effect: 'none',
+      note: 'The whole worm was 376 bytes and fit in one packet. It infected most of its 75,000 victims inside ten minutes.',
+    },
+    {
+      id: 'blaster', name: 'Blaster', year: '2003',
+      cve: 'CVE-2003-0352', bulletin: 'MS03-026',
+      vector: 'TCP 135 · RPC DCOM',
+      spread: 58, effect: 'crash',
+      note: 'Crashed the RPC service and put the host into a reboot loop.',
+    },
+    {
+      id: 'sasser', name: 'Sasser', year: '2004',
+      cve: 'CVE-2003-0533', bulletin: 'MS04-011',
+      vector: 'TCP 445 · LSASS',
+      spread: 74, effect: 'shutdown',
+      note: 'Crashed LSASS, which put an infected machine on a shutdown countdown.',
+    },
+    {
+      id: 'welchia', name: 'Welchia', year: '2003',
+      cve: 'CVE-2003-0352', bulletin: 'MS03-026',
+      vector: 'TCP 135 · RPC DCOM + WebDAV',
+      spread: 66, effect: 'cure',
+      note: 'Used the same exploit as Blaster, then deleted Blaster and installed the patch. It removed itself on 1 January 2004.',
+    },
+  ];
+
+  const wormById: Record<string, Worm> = {};
+  for (const w of WORMS) wormById[w.id] = w;
+
+  type CellState = 'clean' | 'infected' | 'patched' | 'crashed';
+
+  interface Cell {
+    name: string;
+    i: number;
+    state: CellState;
+    worm: string | null;
+    timer: number;
+    spawn: number;
+    flash: number;
+    x: number;
+    y: number;
+  }
+
+  interface Bug {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    target: number;
+    worm: string;
+    life: number;
+    dead: boolean;
+  }
+
   let cells: Cell[] = [];
   let bugs: Bug[] = [];
   let tankLinks: { a: number; b: number }[] = [];
-  let wipeTimer = 0;
-  let spawnTimer = 0;
-  let idle = 0;
   let cellR = 20;
+  let wipeTimer = 0;
 
   let mode: 'map' | 'run' = 'map';
   let tick = 0;
@@ -135,16 +212,13 @@ export function initMap(): void {
   let H = 0;
   let C = readPalette();
 
-  const cleanCells = () => cells.filter((c) => c.state === 'clean');
-  const infCount = () => cells.filter((c) => c.state === 'infected').length;
+  const vulnerable = () => cells.filter((c) => c.state === 'clean');
+  const infectedCount = () => cells.filter((c) => c.state === 'infected').length;
 
   function buildTank(): void {
     cells = [];
     bugs = [];
     tankLinks = [];
-    wipeTimer = 0;
-    spawnTimer = 0;
-    idle = 0;
     cellR = Math.max(13, Math.min(21, Math.min(W, H) * 0.044));
 
     const cx = W * 0.5;
@@ -155,13 +229,9 @@ export function initMap(): void {
       const ang = i * 2.399963; // golden angle: organic, nothing lines up
       const r = maxR * Math.sqrt((i + 0.5) / CONTAINERS.length);
       cells.push({
-        name,
-        i,
-        state: 'clean',
+        name, i, state: 'clean', worm: null, timer: 0, spawn: 0, flash: 0,
         x: cx + Math.cos(ang) * r,
         y: cy + Math.sin(ang) * r,
-        spawn: 0,
-        flash: 0,
       });
     });
 
@@ -211,139 +281,170 @@ export function initMap(): void {
     );
   }
 
-  function spawnBug(fromIdx: number): void {
-    if (bugs.length >= 3) return;
-    const pool = cleanCells().filter((c) => c.i !== fromIdx);
+  function spawnBug(fromIdx: number, worm: string): void {
+    if (bugs.length >= 4) return;
+    const w = wormById[worm];
+    // Welchia seeks out infected hosts as well as clean ones: curing Blaster
+    // was its actual payload, not a side effect.
+    const pool = (w && w.effect === 'cure'
+      ? cells.filter((c) => c.i !== fromIdx && (c.state === 'clean' || c.state === 'infected'))
+      : vulnerable().filter((c) => c.i !== fromIdx));
     if (!pool.length) return;
     const t = pool[Math.floor(Math.random() * pool.length)];
     const s = cells[fromIdx];
     const ang = Math.atan2(t.y - s.y, t.x - s.x);
     bugs.push({
-      x: s.x,
-      y: s.y,
-      vx: Math.cos(ang) * 0.8,
-      vy: Math.sin(ang) * 0.8,
-      target: t.i,
-      strain: STRAINS[Math.floor(Math.random() * STRAINS.length)],
-      life: 0,
-      dead: false,
+      x: s.x, y: s.y,
+      vx: Math.cos(ang) * 0.8, vy: Math.sin(ang) * 0.8,
+      target: t.i, worm, life: 0, dead: false,
     });
+  }
+
+  /** Release a worm into the tank: one host catches it first. */
+  function releaseWorm(id: string): void {
+    const w = wormById[id];
+    if (!w) return;
+    const pool = w.effect === 'cure'
+      ? cells.filter((c) => c.state === 'clean' || c.state === 'infected')
+      : vulnerable();
+    if (!pool.length) {
+      log(`no host left to infect`, 'warn');
+      return;
+    }
+    const victim = pool[Math.floor(Math.random() * pool.length)];
+    infect(victim, w);
+    log(`${w.name} released — ${victim.name} over ${w.vector.split(' · ')[0]}`, 'warn');
+  }
+
+  function infect(c: Cell, w: Worm): void {
+    if (c.state === 'patched') return;
+
+    if (w.effect === 'cure') {
+      // Welchia patched what it landed on, and removed Blaster if it was there
+      const had = c.worm === 'blaster' && c.state === 'infected';
+      c.state = 'patched';
+      c.worm = 'welchia'; // resident: patched, and still spreading itself
+      c.timer = 0;
+      c.spawn = 0;
+      c.flash = 1;
+      log(had ? `welchia removed blaster from ${c.name}` : `${c.name} patched by welchia`, 'ok');
+      return;
+    }
+
+    c.state = 'infected';
+    c.worm = w.id;
+    c.spawn = 0;
+    c.flash = 1;
+    log(`${c.name} infected — ${w.name} · ${w.cve}`, 'bad');
+
+    if (w.effect === 'crash') c.timer = 210;
+    if (w.effect === 'shutdown') c.timer = 190;
+    if (w.effect === 'none') c.timer = 240; // memory-only: a reboot clears it
   }
 
   function simulate(): void {
     if (mode !== 'run') return;
     tick++;
 
-    // The tank must never sit dead. If nothing is infected and no virus is
-    // loose, the monitor lets a new one in — otherwise a well-timed wipe
-    // leaves the aquarium permanently clean.
-    if (!bugs.length && !infCount()) {
-      if (++idle > 90) {
-        idle = 0;
-        const pool = cleanCells();
-        if (pool.length) {
-          const victim = pool[Math.floor(Math.random() * pool.length)];
-          victim.state = 'infected';
-          victim.flash = 1;
-          log(`${victim.name} executed an attachment`, 'warn');
-          spawnBug(victim.i);
-        }
-      }
-    } else {
-      idle = 0;
-    }
-
-    // infected machines breed more viruses
     for (const c of cells) {
-      if (c.state !== 'infected') continue;
-      if (infCount() >= INFECT_CAP) break;
-      if (++c.spawn > 220) {
+      if (c.state === 'crashed') {
+        if (c.timer > 0 && --c.timer === 0) {
+          c.state = 'clean';
+          c.flash = 1;
+          log(`${c.name} rebooted`, 'ok');
+        }
+        continue;
+      }
+      const spreading = c.state === 'infected'
+        || (c.state === 'patched' && c.worm === 'welchia');
+      if (!spreading || !c.worm) continue;
+      const w = wormById[c.worm];
+      if (!w) continue;
+      if (++c.spawn >= w.spread) {
         c.spawn = 0;
-        spawnBug(c.i);
+        spawnBug(c.i, c.worm);
+      }
+      if (c.timer > 0 && --c.timer === 0) {
+        if (w.effect === 'crash') {
+          c.state = 'crashed';
+          c.worm = null;
+          c.timer = 120; // reboot loop: it comes back, and can be hit again
+          c.flash = 1;
+          log(`${c.name} crashed — RPC service down`, 'bad');
+        } else if (w.effect === 'shutdown') {
+          c.state = 'clean';
+          c.worm = null;
+          c.flash = 1;
+          log(`${c.name} rebooted on the shutdown timer`, 'ok');
+        } else if (w.effect === 'none') {
+          c.state = 'clean';
+          c.worm = null;
+          c.flash = 1;
+          log(`${c.name} cleared — memory-only worm`, 'ok');
+        }
       }
     }
 
-    // viruses swim
     for (const b of bugs) {
-      let t = cells[b.target];
-      if (!t || t.state !== 'clean') {
-        const pool = cleanCells();
-        if (!pool.length) {
-          b.dead = true;
-          continue;
-        }
-        t = pool[Math.floor(Math.random() * pool.length)];
-        b.target = t.i;
+      const t = cells[b.target];
+      if (!t || t.state === 'patched') {
+        const pool = vulnerable();
+        if (!pool.length) { b.dead = true; continue; }
+        b.target = pool[Math.floor(Math.random() * pool.length)].i;
+        continue;
       }
+      const w = wormById[b.worm];
       const ang = Math.atan2(t.y - b.y, t.x - b.x);
       b.vx += Math.cos(ang) * 0.05;
       b.vy += Math.sin(ang) * 0.05;
       b.vx += (Math.random() - 0.5) * 0.11;
       b.vy += (Math.random() - 0.5) * 0.11;
-
       const sp = Math.hypot(b.vx, b.vy) || 1;
-      if (sp > 1.45) {
-        b.vx = (b.vx / sp) * 1.45;
-        b.vy = (b.vy / sp) * 1.45;
-      }
-
-      b.x += b.vx;
-      b.y += b.vy;
-      b.life++;
+      if (sp > 1.45) { b.vx = (b.vx / sp) * 1.45; b.vy = (b.vy / sp) * 1.45; }
+      b.x += b.vx; b.y += b.vy; b.life++;
 
       if (b.x < 12) { b.x = 12; b.vx = Math.abs(b.vx); }
       if (b.x > W - 12) { b.x = W - 12; b.vx = -Math.abs(b.vx); }
       if (b.y < 12) { b.y = 12; b.vy = Math.abs(b.vy); }
       if (b.y > H - 12) { b.y = H - 12; b.vy = -Math.abs(b.vy); }
 
-      for (const c of cells) {
-        if (c.state !== 'clean') continue;
-        if (Math.hypot(c.x - b.x, c.y - b.y) < cellR * 0.85) {
-          if (infCount() < INFECT_CAP) {
-            c.state = 'infected';
-            c.flash = 1;
-            log(`${c.name} infected — ${b.strain}`, 'bad');
-          }
-          b.dead = true;
-          break;
+      if (Math.hypot(t.x - b.x, t.y - b.y) < cellR * 0.85 && w) {
+        if (t.state === 'clean' || (w.effect === 'cure' && t.state === 'infected')) {
+          infect(t, w);
         }
+        b.dead = true;
       }
     }
-    bugs = bugs.filter((b) => !b.dead && b.life < 1200);
+    bugs = bugs.filter((b) => !b.dead && b.life < 1400);
 
-    // the monitor wipes and rebuilds at random
-    if (++wipeTimer > 200) {
+    // The monitor wipes and rebuilds at random, as in the comic. Crashed hosts
+    // come back first; patched hosts are rebuilt eventually too, so a released
+    // worm always has something to reach.
+    if (++wipeTimer > 520) {
       wipeTimer = 0;
-      const sick = cells.filter((c) => c.state === 'infected');
-      if (sick.length > 1) {
-        const v = sick[Math.floor(Math.random() * sick.length)];
-        v.state = 'wiped';
-        v.flash = 1;
-        log(`${v.name} wiped by monitor`, 'ok');
-      }
-    }
-    if (++spawnTimer > 150) {
-      spawnTimer = 0;
-      const dead = cells.filter((c) => c.state === 'wiped');
-      if (dead.length) {
-        const v = dead[Math.floor(Math.random() * dead.length)];
-        v.state = 'clean';
-        v.flash = 1;
-        log(`${v.name} rebuilt clean`, 'ok');
+      const patched = cells.filter((c) => c.state === 'patched');
+      if (patched.length) {
+        const v = patched[Math.floor(Math.random() * patched.length)];
+        v.state = 'clean'; v.worm = null; v.flash = 1;
+        log(`${v.name} rebuilt — patch gone`, 'ok');
       }
     }
 
     for (const c of cells) if (c.flash > 0) c.flash -= 0.02;
 
-    const inf = infCount();
-    const wip = cells.filter((c) => c.state === 'wiped').length;
+    const inf = infectedCount();
+    const patched = cells.filter((c) => c.state === 'patched').length;
+    const down = cells.filter((c) => c.state === 'crashed').length;
     const st1 = document.getElementById('stat-hosts');
     const st2 = document.getElementById('stat-debt');
     if (st1) {
-      st1.textContent = inf ? `${inf} infected` : wip ? `${wip} wiped` : 'all clean';
+      st1.textContent = inf ? `${inf} infected`
+        : down ? `${down} down`
+        : patched ? `${patched} patched`
+        : 'all clean';
       st1.style.color = inf ? C.live : '';
     }
-    if (st2) st2.textContent = `patch debt ${wip + inf}`;
+    if (st2) st2.textContent = `patch debt ${down + inf}`;
   }
 
   /* ── geometry ──────────────────────────────────────────── */
@@ -516,10 +617,10 @@ export function initMap(): void {
       ctx!.globalAlpha = 1;
     }
 
-    // machines — fixed nodes, not creatures
     for (const c of cells) {
       const inf = c.state === 'infected';
-      const wip = c.state === 'wiped';
+      const patched = c.state === 'patched';
+      const crashed = c.state === 'crashed';
       const pulse = inf ? 1 + Math.sin(tick * 0.16) * 0.07 : 1;
       const r = cellR * pulse;
 
@@ -529,12 +630,23 @@ export function initMap(): void {
         ctx!.fillStyle = `${C.live}22`;
         ctx!.fill();
       }
+      // patched hosts wear a ring: immune, and visibly so
+      if (patched) {
+        ctx!.beginPath();
+        ctx!.arc(c.x, c.y, r + 4, 0, Math.PI * 2);
+        ctx!.strokeStyle = C.ink;
+        ctx!.lineWidth = 1;
+        ctx!.globalAlpha = 0.55;
+        ctx!.stroke();
+        ctx!.globalAlpha = 1;
+      }
+
       ctx!.beginPath();
       ctx!.arc(c.x, c.y, r, 0, Math.PI * 2);
       if (inf) {
         ctx!.fillStyle = C.live;
         ctx!.fill();
-      } else if (wip) {
+      } else if (crashed) {
         ctx!.fillStyle = C.bg;
         ctx!.fill();
         ctx!.setLineDash([3, 3]);
@@ -546,7 +658,7 @@ export function initMap(): void {
         ctx!.fillStyle = C.bg;
         ctx!.fill();
         ctx!.strokeStyle = C.ink;
-        ctx!.lineWidth = 1.2;
+        ctx!.lineWidth = patched ? 1.8 : 1.2;
         ctx!.stroke();
       }
 
@@ -681,19 +793,20 @@ export function initMap(): void {
     if (mode === 'run') {
       const c = hitCell(p.x, p.y);
       if (c) {
-        setReadout(
-          c.state === 'infected' ? 'infected' : c.state === 'wiped' ? 'wiped' : 'container',
-          c.name,
-          c.state === 'infected'
-            ? 'Something got in. It is shedding viruses onto its neighbours.'
-            : c.state === 'wiped'
-              ? 'The monitor took it down. It will be rebuilt clean.'
-              : 'Clean for now. No patches, so it is only a matter of time.',
-        );
+        const w = c.worm ? wormById[c.worm] : null;
+        if (c.state === 'infected' && w) {
+          setReadout(`${w.name} · ${w.cve}`, c.name, `${w.vector}. ${w.note}`);
+        } else if (c.state === 'patched') {
+          setReadout('patched', c.name, 'Welchia got here first. It is immune until something new arrives.');
+        } else if (c.state === 'crashed') {
+          setReadout('crashed', c.name, 'The RPC service is down. The monitor will rebuild it.');
+        } else {
+          setReadout('unpatched', c.name, 'Nothing on it yet. No patches, so it is only a matter of time.');
+        }
         cv.style.cursor = 'pointer';
       } else {
-        setReadout('the tank', 'twelve VMs, no patches',
-          'They run whatever arrives by email and share files with each other.');
+        setReadout('the tank', 'four worms, twelve hosts',
+          'Pick a worm to release it. They behave the way they actually did.');
         cv.style.cursor = 'default';
       }
       return;
@@ -787,15 +900,17 @@ export function initMap(): void {
       buildTank();
       tick = 0;
       if (head) head.hidden = false;
-      if (hint) hint.textContent = 'hover a machine · click “map” to go back';
-      setReadout('the tank', 'twelve VMs, no patches',
-        'They run whatever arrives by email and share files with each other.');
+      if (wormbar) wormbar.hidden = false;
+      if (hint) hint.textContent = 'release a worm · hover a host · “map” goes back';
+      setReadout('the tank', 'four worms, twelve hosts',
+        'Pick a worm to release it. They behave the way they actually did.');
       const st1 = document.getElementById('stat-hosts');
       const st2 = document.getElementById('stat-debt');
       if (st1) { st1.textContent = 'all clean'; st1.style.color = ''; }
       if (st2) st2.textContent = 'patch debt 0';
     } else {
       if (head) head.hidden = true;
+      if (wormbar) wormbar.hidden = true;
       if (hint) hint.textContent = 'drag to move · “the tank” opens the network';
       const st1 = document.getElementById('stat-hosts');
       const st2 = document.getElementById('stat-debt');
@@ -807,6 +922,34 @@ export function initMap(): void {
 
   btnMap?.addEventListener('click', () => setMode('map'));
   btnRun?.addEventListener('click', () => setMode('run'));
+
+  const wormbar = document.getElementById('wormbar');
+  wormbar?.querySelectorAll<HTMLButtonElement>('button[data-worm]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.worm;
+      if (!id) return;
+      releaseWorm(id);
+      dirty = true;
+      requestFrame();
+    });
+  });
+
+  wormbar?.querySelector<HTMLButtonElement>('button[data-reset]')?.addEventListener('click', () => {
+    // Welchia eventually patches everything, so the tank needs a way back
+    bugs = [];
+    for (const c of cells) {
+      c.state = 'clean';
+      c.worm = null;
+      c.timer = 0;
+      c.spawn = 0;
+      c.flash = 0;
+    }
+    LOG.length = 0;
+    renderLog();
+    log('tank reset — twelve unpatched hosts', 'ok');
+    dirty = true;
+    requestFrame();
+  });
 
   const onPalette = () => {
     C = readPalette();
