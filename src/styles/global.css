@@ -413,17 +413,6 @@ p { text-wrap: pretty; }
 .lg-wip{border:1.8px solid var(--text);background:var(--bg)}
 .lg-down{border:1px dashed var(--line-2);background:var(--bg)}
 
-.wormbar{margin-top:.6rem;display:flex;flex-wrap:wrap;gap:.35rem;pointer-events:auto}
-.wormbar[hidden]{display:none}
-.wormbar button{
-  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
-  padding:.34rem .55rem;border:1px solid var(--line-2);border-radius:var(--radius);
-  background:var(--bg);color:var(--text-2);cursor:pointer;
-  transition:color .16s var(--ease),border-color .16s var(--ease),background .16s var(--ease);
-}
-.wormbar button:hover{color:var(--accent);border-color:var(--accent)}
-.wormbar button.reset{margin-left:.2rem;color:var(--text-3);border-style:dashed}
-
 .maplog{margin-top:.5rem;display:grid;gap:.15rem;font-family:var(--font-mono);
   font-size:.6rem;line-height:1.45;list-style:none;max-width:310px}
 .maplog:empty{display:none}

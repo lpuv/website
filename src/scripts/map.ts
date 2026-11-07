@@ -342,9 +342,24 @@ export function initMap(): void {
     if (w.effect === 'none') c.timer = 240; // memory-only: a reboot clears it
   }
 
+  let quiet = 0;
+
   function simulate(): void {
     if (mode !== 'run') return;
     tick++;
+
+    // The tank runs itself. When nothing is active, a worm gets in — the
+    // visitor watches rather than operates.
+    const active = cells.some((c) => c.state === 'infected' || c.state === 'crashed');
+    if (!active && !bugs.length) {
+      if (++quiet > 110) {
+        quiet = 0;
+        const pool = cells.filter((c) => c.state === 'clean');
+        if (pool.length) releaseWorm(WORMS[Math.floor(Math.random() * WORMS.length)].id);
+      }
+    } else {
+      quiet = 0;
+    }
 
     for (const c of cells) {
       if (c.state === 'crashed') {
@@ -900,17 +915,15 @@ export function initMap(): void {
       buildTank();
       tick = 0;
       if (head) head.hidden = false;
-      if (wormbar) wormbar.hidden = false;
-      if (hint) hint.textContent = 'release a worm · hover a host · “map” goes back';
-      setReadout('the tank', 'four worms, twelve hosts',
-        'Pick a worm to release it. They behave the way they actually did.');
+      if (hint) hint.textContent = 'hover a host · “map” goes back';
+      setReadout('the tank', 'twelve unpatched hosts',
+        'Worms get in and spread. Hover a host to see what is on it.');
       const st1 = document.getElementById('stat-hosts');
       const st2 = document.getElementById('stat-debt');
       if (st1) { st1.textContent = 'all clean'; st1.style.color = ''; }
       if (st2) st2.textContent = 'patch debt 0';
     } else {
       if (head) head.hidden = true;
-      if (wormbar) wormbar.hidden = true;
       if (hint) hint.textContent = 'drag to move · “the tank” opens the network';
       const st1 = document.getElementById('stat-hosts');
       const st2 = document.getElementById('stat-debt');
@@ -923,33 +936,7 @@ export function initMap(): void {
   btnMap?.addEventListener('click', () => setMode('map'));
   btnRun?.addEventListener('click', () => setMode('run'));
 
-  const wormbar = document.getElementById('wormbar');
-  wormbar?.querySelectorAll<HTMLButtonElement>('button[data-worm]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.worm;
-      if (!id) return;
-      releaseWorm(id);
-      dirty = true;
-      requestFrame();
-    });
-  });
 
-  wormbar?.querySelector<HTMLButtonElement>('button[data-reset]')?.addEventListener('click', () => {
-    // Welchia eventually patches everything, so the tank needs a way back
-    bugs = [];
-    for (const c of cells) {
-      c.state = 'clean';
-      c.worm = null;
-      c.timer = 0;
-      c.spawn = 0;
-      c.flash = 0;
-    }
-    LOG.length = 0;
-    renderLog();
-    log('tank reset — twelve unpatched hosts', 'ok');
-    dirty = true;
-    requestFrame();
-  });
 
   const onPalette = () => {
     C = readPalette();
