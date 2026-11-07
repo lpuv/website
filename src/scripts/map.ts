@@ -1,12 +1,12 @@
 /**
- * The hero has two depths.
+ * Two independent canvases.
  *
- *   map  — the machines Luna runs, as a force-directed graph you can drag.
- *   tank — a simulated network of twelve unpatched VMs, after xkcd 350: viruses
- *          swim between hosts, breed, and get wiped by a monitor at random.
+ *   initMap()  — the hero. The machines Luna runs, as a force-directed graph
+ *                you can drag. This is the interactive thing on the page.
+ *   initTank() — a section further down. Twelve unpatched hosts and the worms
+ *                that get into them, after xkcd 350.
  *
- * Both share one canvas. Colours come from the CSS custom properties so the
- * canvas follows the palette.
+ * Colours come from the CSS custom properties so both follow the palette.
  */
 
 interface NodeSeed {
@@ -32,27 +32,6 @@ interface Link {
   b: Node;
 }
 
-interface Cell {
-  name: string;
-  i: number;
-  state: 'clean' | 'infected' | 'wiped';
-  x: number;
-  y: number;
-  spawn: number;
-  flash: number;
-}
-
-interface Bug {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  target: number;
-  strain: string;
-  life: number;
-  dead: boolean;
-}
-
 interface Palette {
   bg: string;
   ink: string;
@@ -61,22 +40,6 @@ interface Palette {
   live: string;
   inkOn: string;
 }
-
-const K_REPEL = 9000;
-const K_SPRING = 0.012;
-const K_CENTER = 0.004;
-const DAMP = 0.9;
-
-/** The twelve containers on pinwheel. Real names, from the nix-lab record. */
-const CONTAINERS = [
-  'ipa', 'panel', 'dns', 'media', 'cfproxy', 'trilium',
-  'finance', 'twitch', 'changes', 'timeline', 'home', 'monitor',
-];
-
-const STRAINS = ['blaster', 'w32.welchia', 'sobig', 'mydoom', 'sqlslammer'];
-
-/** A hard cap keeps the tank readable: a few sick machines, not a wipeout. */
-const INFECT_CAP = 4;
 
 function readPalette(): Palette {
   const s = getComputedStyle(document.documentElement);
@@ -90,6 +53,33 @@ function readPalette(): Palette {
     inkOn: g('--accent-ink'),
   };
 }
+
+/** Shared canvas plumbing: DPR-correct sizing that never drifts from the box. */
+function fitCanvas(cv: HTMLCanvasElement, stage: HTMLElement): { w: number; h: number } | null {
+  const rect = stage.getBoundingClientRect();
+  const w = Math.round(rect.width);
+  const h = Math.round(rect.height);
+  if (!w || !h) return null;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const bw = Math.round(w * dpr);
+  const bh = Math.round(h * dpr);
+  if (cv.width !== bw || cv.height !== bh) {
+    cv.width = bw;
+    cv.height = bh;
+  }
+  const ctx = cv.getContext('2d');
+  ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { w, h };
+}
+
+/* ══════════════════════════════════════════════════════════
+   The hero map
+   ══════════════════════════════════════════════════════════ */
+
+const K_REPEL = 9000;
+const K_SPRING = 0.012;
+const K_CENTER = 0.004;
+const DAMP = 0.9;
 
 export function initMap(): void {
   const cv = document.getElementById('map') as HTMLCanvasElement | null;
@@ -110,7 +100,6 @@ export function initMap(): void {
   }
   if (!seeds.length) return;
 
-  /* ── depth 1: the machines ─────────────────────────────── */
   const nodes: Node[] = seeds.map((s) => ({ ...s, x: 0, y: 0, vx: 0, vy: 0, hot: false, fixed: false }));
   const byId: Record<string, Node> = {};
   for (const n of nodes) byId[n.id] = n;
@@ -120,392 +109,14 @@ export function initMap(): void {
   let selected: Node = core;
   let drag: { n: Node; px: number; py: number } | null = null;
 
-  /* ── depth 2: the tank ──────────────────────────────────
-     A worm library, not a generic infection. Each entry is a real worm with
-     its real CVE and its real behaviour, so the simulation is a reconstruction
-     rather than a fiction. Facts verified against Microsoft bulletins and the
-     worms' own records; see the worm cards for sources.
-     ──────────────────────────────────────────────────────── */
-
-  interface Worm {
-    id: string;
-    name: string;
-    year: string;
-    cve: string;
-    bulletin: string;
-    vector: string;
-    /** ticks between spread attempts — lower is faster */
-    spread: number;
-    /** what it does to the host it lands on */
-    effect: 'none' | 'crash' | 'shutdown' | 'cure';
-    note: string;
-  }
-
-  const WORMS: Worm[] = [
-    {
-      id: 'slammer', name: 'SQL Slammer', year: '2003',
-      cve: 'CVE-2002-0649', bulletin: 'MS02-039',
-      vector: 'UDP 1434 · SQL Resolution Service',
-      spread: 30, effect: 'none',
-      note: 'The whole worm was 376 bytes and fit in one packet. It infected most of its 75,000 victims inside ten minutes.',
-    },
-    {
-      id: 'blaster', name: 'Blaster', year: '2003',
-      cve: 'CVE-2003-0352', bulletin: 'MS03-026',
-      vector: 'TCP 135 · RPC DCOM',
-      spread: 58, effect: 'crash',
-      note: 'Crashed the RPC service and put the host into a reboot loop.',
-    },
-    {
-      id: 'sasser', name: 'Sasser', year: '2004',
-      cve: 'CVE-2003-0533', bulletin: 'MS04-011',
-      vector: 'TCP 445 · LSASS',
-      spread: 74, effect: 'shutdown',
-      note: 'Crashed LSASS, which put an infected machine on a shutdown countdown.',
-    },
-    {
-      id: 'welchia', name: 'Welchia', year: '2003',
-      cve: 'CVE-2003-0352', bulletin: 'MS03-026',
-      vector: 'TCP 135 · RPC DCOM + WebDAV',
-      spread: 66, effect: 'cure',
-      note: 'Used the same exploit as Blaster, then deleted Blaster and installed the patch. It removed itself on 1 January 2004.',
-    },
-  ];
-
-  const wormById: Record<string, Worm> = {};
-  for (const w of WORMS) wormById[w.id] = w;
-
-  type CellState = 'clean' | 'infected' | 'patched' | 'crashed';
-
-  interface Cell {
-    name: string;
-    i: number;
-    state: CellState;
-    worm: string | null;
-    timer: number;
-    spawn: number;
-    flash: number;
-    x: number;
-    y: number;
-  }
-
-  interface Bug {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    target: number;
-    worm: string;
-    life: number;
-    dead: boolean;
-  }
-
-  let cells: Cell[] = [];
-  let bugs: Bug[] = [];
-  let tankLinks: { a: number; b: number }[] = [];
-  let cellR = 20;
-  let wipeTimer = 0;
-
-  let mode: 'map' | 'run' = 'map';
-  let tick = 0;
   let W = 0;
   let H = 0;
   let C = readPalette();
-
-  const vulnerable = () => cells.filter((c) => c.state === 'clean');
-  const infectedCount = () => cells.filter((c) => c.state === 'infected').length;
-
-  function buildTank(): void {
-    cells = [];
-    bugs = [];
-    tankLinks = [];
-    cellR = Math.max(13, Math.min(21, Math.min(W, H) * 0.044));
-
-    const cx = W * 0.5;
-    const cy = H * 0.5;
-    const maxR = Math.min(W, H) * 0.38;
-
-    CONTAINERS.forEach((name, i) => {
-      const ang = i * 2.399963; // golden angle: organic, nothing lines up
-      const r = maxR * Math.sqrt((i + 0.5) / CONTAINERS.length);
-      cells.push({
-        name, i, state: 'clean', worm: null, timer: 0, spawn: 0, flash: 0,
-        x: cx + Math.cos(ang) * r,
-        y: cy + Math.sin(ang) * r,
-      });
-    });
-
-    // it is still a network: wire each machine to its two nearest neighbours
-    const seen = new Set<string>();
-    cells.forEach((c) => {
-      cells
-        .filter((o) => o !== c)
-        .map((o) => ({ o, d: Math.hypot(o.x - c.x, o.y - c.y) }))
-        .sort((p, q) => p.d - q.d)
-        .slice(0, 2)
-        .forEach(({ o }) => {
-          const key = [c.i, o.i].sort((x, y) => x - y).join('-');
-          if (seen.has(key)) return;
-          seen.add(key);
-          tankLinks.push({ a: c.i, b: o.i });
-        });
-    });
-  }
-
-  /* ── the event log ─────────────────────────────────────── */
-  const LOG: { t: string; text: string; kind: string }[] = [];
-  const logEl = document.getElementById('map-log');
-
-  function log(text: string, kind: string): void {
-    const t = new Intl.DateTimeFormat('en-CA', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-    }).format(new Date());
-    LOG.unshift({ t, text, kind });
-    if (LOG.length > 4) LOG.pop();
-    renderLog();
-  }
-
-  function renderLog(): void {
-    if (!logEl) return;
-    logEl.replaceChildren(
-      ...LOG.map((e) => {
-        const li = document.createElement('li');
-        li.dataset.k = e.kind;
-        const time = document.createElement('time');
-        time.textContent = e.t;
-        const span = document.createElement('span');
-        span.textContent = e.text;
-        li.append(time, span);
-        return li;
-      }),
-    );
-  }
-
-  function spawnBug(fromIdx: number, worm: string): void {
-    if (bugs.length >= 4) return;
-    const w = wormById[worm];
-    // Welchia seeks out infected hosts as well as clean ones: curing Blaster
-    // was its actual payload, not a side effect.
-    const pool = (w && w.effect === 'cure'
-      ? cells.filter((c) => c.i !== fromIdx && (c.state === 'clean' || c.state === 'infected'))
-      : vulnerable().filter((c) => c.i !== fromIdx));
-    if (!pool.length) return;
-    const t = pool[Math.floor(Math.random() * pool.length)];
-    const s = cells[fromIdx];
-    const ang = Math.atan2(t.y - s.y, t.x - s.x);
-    bugs.push({
-      x: s.x, y: s.y,
-      vx: Math.cos(ang) * 0.8, vy: Math.sin(ang) * 0.8,
-      target: t.i, worm, life: 0, dead: false,
-    });
-  }
-
-  /** Release a worm into the tank: one host catches it first. */
-  function releaseWorm(id: string): void {
-    const w = wormById[id];
-    if (!w) return;
-    const pool = w.effect === 'cure'
-      ? cells.filter((c) => c.state === 'clean' || c.state === 'infected')
-      : vulnerable();
-    if (!pool.length) {
-      log(`no host left to infect`, 'warn');
-      return;
-    }
-    const victim = pool[Math.floor(Math.random() * pool.length)];
-    infect(victim, w);
-    log(`${w.name} released — ${victim.name} over ${w.vector.split(' · ')[0]}`, 'warn');
-  }
-
-  function infect(c: Cell, w: Worm): void {
-    if (c.state === 'patched') return;
-
-    if (w.effect === 'cure') {
-      // Welchia patched what it landed on, and removed Blaster if it was there
-      const had = c.worm === 'blaster' && c.state === 'infected';
-      c.state = 'patched';
-      c.worm = 'welchia'; // resident: patched, and still spreading itself
-      c.timer = 0;
-      c.spawn = 0;
-      c.flash = 1;
-      log(had ? `welchia removed blaster from ${c.name}` : `${c.name} patched by welchia`, 'ok');
-      return;
-    }
-
-    c.state = 'infected';
-    c.worm = w.id;
-    c.spawn = 0;
-    c.flash = 1;
-    log(`${c.name} infected — ${w.name} · ${w.cve}`, 'bad');
-
-    if (w.effect === 'crash') c.timer = 210;
-    if (w.effect === 'shutdown') c.timer = 190;
-    if (w.effect === 'none') c.timer = 240; // memory-only: a reboot clears it
-  }
-
-  let quiet = 0;
-
-  function simulate(): void {
-    if (mode !== 'run') return;
-    tick++;
-
-    // The tank runs itself. When nothing is active, a worm gets in — the
-    // visitor watches rather than operates.
-    const active = cells.some((c) => c.state === 'infected' || c.state === 'crashed');
-    if (!active && !bugs.length) {
-      if (++quiet > 110) {
-        quiet = 0;
-        const pool = cells.filter((c) => c.state === 'clean');
-        if (pool.length) releaseWorm(WORMS[Math.floor(Math.random() * WORMS.length)].id);
-      }
-    } else {
-      quiet = 0;
-    }
-
-    for (const c of cells) {
-      if (c.state === 'crashed') {
-        if (c.timer > 0 && --c.timer === 0) {
-          c.state = 'clean';
-          c.flash = 1;
-          log(`${c.name} rebooted`, 'ok');
-        }
-        continue;
-      }
-      const spreading = c.state === 'infected'
-        || (c.state === 'patched' && c.worm === 'welchia');
-      if (!spreading || !c.worm) continue;
-      const w = wormById[c.worm];
-      if (!w) continue;
-      if (++c.spawn >= w.spread) {
-        c.spawn = 0;
-        spawnBug(c.i, c.worm);
-      }
-      if (c.timer > 0 && --c.timer === 0) {
-        if (w.effect === 'crash') {
-          c.state = 'crashed';
-          c.worm = null;
-          c.timer = 120; // reboot loop: it comes back, and can be hit again
-          c.flash = 1;
-          log(`${c.name} crashed — RPC service down`, 'bad');
-        } else if (w.effect === 'shutdown') {
-          c.state = 'clean';
-          c.worm = null;
-          c.flash = 1;
-          log(`${c.name} rebooted on the shutdown timer`, 'ok');
-        } else if (w.effect === 'none') {
-          c.state = 'clean';
-          c.worm = null;
-          c.flash = 1;
-          log(`${c.name} cleared — memory-only worm`, 'ok');
-        }
-      }
-    }
-
-    for (const b of bugs) {
-      const t = cells[b.target];
-      if (!t || t.state === 'patched') {
-        const pool = vulnerable();
-        if (!pool.length) { b.dead = true; continue; }
-        b.target = pool[Math.floor(Math.random() * pool.length)].i;
-        continue;
-      }
-      const w = wormById[b.worm];
-      const ang = Math.atan2(t.y - b.y, t.x - b.x);
-      b.vx += Math.cos(ang) * 0.05;
-      b.vy += Math.sin(ang) * 0.05;
-      b.vx += (Math.random() - 0.5) * 0.11;
-      b.vy += (Math.random() - 0.5) * 0.11;
-      const sp = Math.hypot(b.vx, b.vy) || 1;
-      if (sp > 1.45) { b.vx = (b.vx / sp) * 1.45; b.vy = (b.vy / sp) * 1.45; }
-      b.x += b.vx; b.y += b.vy; b.life++;
-
-      if (b.x < 12) { b.x = 12; b.vx = Math.abs(b.vx); }
-      if (b.x > W - 12) { b.x = W - 12; b.vx = -Math.abs(b.vx); }
-      if (b.y < 12) { b.y = 12; b.vy = Math.abs(b.vy); }
-      if (b.y > H - 12) { b.y = H - 12; b.vy = -Math.abs(b.vy); }
-
-      if (Math.hypot(t.x - b.x, t.y - b.y) < cellR * 0.85 && w) {
-        if (t.state === 'clean' || (w.effect === 'cure' && t.state === 'infected')) {
-          infect(t, w);
-        }
-        b.dead = true;
-      }
-    }
-    bugs = bugs.filter((b) => !b.dead && b.life < 1400);
-
-    // The monitor wipes and rebuilds at random, as in the comic. Crashed hosts
-    // come back first; patched hosts are rebuilt eventually too, so a released
-    // worm always has something to reach.
-    if (++wipeTimer > 520) {
-      wipeTimer = 0;
-      const patched = cells.filter((c) => c.state === 'patched');
-      if (patched.length) {
-        const v = patched[Math.floor(Math.random() * patched.length)];
-        v.state = 'clean'; v.worm = null; v.flash = 1;
-        log(`${v.name} rebuilt — patch gone`, 'ok');
-      }
-    }
-
-    for (const c of cells) if (c.flash > 0) c.flash -= 0.02;
-
-    const inf = infectedCount();
-    const patched = cells.filter((c) => c.state === 'patched').length;
-    const down = cells.filter((c) => c.state === 'crashed').length;
-    const st1 = document.getElementById('stat-hosts');
-    const st2 = document.getElementById('stat-debt');
-    if (st1) {
-      st1.textContent = inf ? `${inf} infected`
-        : down ? `${down} down`
-        : patched ? `${patched} patched`
-        : 'all clean';
-      st1.style.color = inf ? C.live : '';
-    }
-    if (st2) st2.textContent = `patch debt ${down + inf}`;
-  }
-
-  /* ── geometry ──────────────────────────────────────────── */
-  /**
-   * The canvas bitmap must always match its CSS box. If they diverge the drawing
-   * is scaled and every pointer hit lands off the node it looks like it hit, so
-   * the box is observed rather than sampled once at load.
-   */
   let seeded = false;
 
-  function resize(): void {
-    const rect = stage.getBoundingClientRect();
-    const w = Math.round(rect.width);
-    const h = Math.round(rect.height);
-    if (!w || !h) return;
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const bw = Math.round(w * dpr);
-    const bh = Math.round(h * dpr);
-    if (cv!.width !== bw || cv!.height !== bh) {
-      cv!.width = bw;
-      cv!.height = bh;
-    }
-
-    const prevW = W;
-    const prevH = H;
-    W = w;
-    H = h;
-    ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    if (!seeded) {
-      seed();
-      seeded = true;
-    } else if (prevW && prevH && (prevW !== w || prevH !== h)) {
-      // keep whatever the visitor dragged; scale it into the new box
-      const sx = w / prevW;
-      const sy = h / prevH;
-      for (const n of nodes) { n.x *= sx; n.y *= sy; n.vx = 0; n.vy = 0; }
-      if (mode === 'run') {
-        for (const c of cells) { c.x *= sx; c.y *= sy; }
-        for (const b of bugs) { b.x *= sx; b.y *= sy; }
-      }
-    }
-    dirty = true;
-    requestFrame();
-  }
+  let visible = true;
+  let frameQueued = false;
+  let dirty = true;
 
   function seed(): void {
     const cx = W * 0.46;
@@ -521,6 +132,34 @@ export function initMap(): void {
       n.vx = 0;
       n.vy = 0;
     });
+  }
+
+  function resize(): void {
+    const prevW = W;
+    const prevH = H;
+    const size = fitCanvas(cv!, stage);
+    if (!size) return;
+    W = size.w;
+    H = size.h;
+
+    if (!seeded) {
+      seed();
+      seeded = true;
+    } else if (prevW && prevH && (prevW !== W || prevH !== H)) {
+      // keep whatever the visitor dragged; scale it into the new box
+      const sx = W / prevW;
+      const sy = H / prevH;
+      for (const n of nodes) { n.x *= sx; n.y *= sy; n.vx = 0; n.vy = 0; }
+    }
+    dirty = true;
+    requestFrame();
+  }
+
+  function isSettled(): boolean {
+    for (const n of nodes) {
+      if (Math.abs(n.vx) > 0.04 || Math.abs(n.vy) > 0.04) return false;
+    }
+    return true;
   }
 
   function step(): void {
@@ -573,8 +212,8 @@ export function initMap(): void {
     }
   }
 
-  /* ── draw ──────────────────────────────────────────────── */
-  function drawMap(): void {
+  function draw(): void {
+    ctx!.clearRect(0, 0, W, H);
     for (const l of links) {
       const hot = l.a === selected || l.b === selected || l.a.hot || l.b.hot;
       ctx!.beginPath();
@@ -615,8 +254,461 @@ export function initMap(): void {
     }
   }
 
-  function drawTank(): void {
-    // the network, drawn first so machines sit on top of it
+  function requestFrame(): void {
+    if (frameQueued) return;
+    frameQueued = true;
+    requestAnimationFrame(loop);
+  }
+
+  function loop(): void {
+    frameQueued = false;
+    if (!visible) return;
+    const moving = !isSettled();
+    if (moving) step();
+    if (moving || dirty) { draw(); dirty = false; }
+    if (moving) requestFrame();
+  }
+
+  function hit(x: number, y: number): Node | null {
+    let best: Node | null = null;
+    let bd = Infinity;
+    for (const n of nodes) {
+      const d = Math.hypot(n.x - x, n.y - y);
+      if (d < Math.max(n.r + 12, 26) && d < bd) { bd = d; best = n; }
+    }
+    return best;
+  }
+
+  const local = (e: PointerEvent) => {
+    const r = cv!.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+
+  cv.addEventListener('pointerdown', (e) => {
+    const p = local(e);
+    const n = hit(p.x, p.y);
+    if (!n) return;
+    cv.setPointerCapture(e.pointerId);
+    cv.classList.add('is-dragging');
+    drag = { n, px: p.x, py: p.y };
+    n.fixed = true;
+    select(n);
+    requestFrame();
+  });
+
+  cv.addEventListener('pointermove', (e) => {
+    const p = local(e);
+    if (drag) {
+      const n = drag.n;
+      n.x = p.x;
+      n.y = p.y;
+      n.vx = (p.x - drag.px) * 0.9;
+      n.vy = (p.y - drag.py) * 0.9;
+      drag.px = p.x;
+      drag.py = p.y;
+      return;
+    }
+    const h = hit(p.x, p.y);
+    for (const n of nodes) n.hot = n === h;
+    cv.style.cursor = h ? 'grab' : 'default';
+    requestFrame();
+  });
+
+  function release(e: PointerEvent): void {
+    if (!drag) return;
+    const n = drag.n;
+    n.fixed = false;
+    n.vx = Math.max(-24, Math.min(24, n.vx));
+    n.vy = Math.max(-24, Math.min(24, n.vy));
+    drag = null;
+    dirty = true;
+    requestFrame();
+    cv!.classList.remove('is-dragging');
+    if (cv!.hasPointerCapture(e.pointerId)) cv!.releasePointerCapture(e.pointerId);
+  }
+
+  cv.addEventListener('pointerup', release);
+  cv.addEventListener('pointercancel', release);
+
+  const ro = {
+    kind: document.getElementById('ro-kind'),
+    label: document.getElementById('ro-label'),
+    desc: document.getElementById('ro-desc'),
+  };
+
+  function select(n: Node): void {
+    selected = n;
+    dirty = true;
+    if (ro.kind) ro.kind.textContent = n.kind;
+    if (ro.label) ro.label.textContent = n.label;
+    if (ro.desc) ro.desc.textContent = n.desc;
+  }
+
+  cv.addEventListener('keydown', (e) => {
+    const i = nodes.indexOf(selected);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      select(nodes[(i + 1) % nodes.length]);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      select(nodes[(i - 1 + nodes.length) % nodes.length]);
+    }
+  });
+
+  window.addEventListener('palettechange', () => {
+    C = readPalette();
+    dirty = true;
+    requestFrame();
+  });
+
+  resize();
+  window.addEventListener('resize', resize);
+  if ('ResizeObserver' in window) new ResizeObserver(() => resize()).observe(stage);
+  document.fonts?.ready.then(() => resize()).catch(() => {});
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      visible = entries[0]?.isIntersecting ?? true;
+      if (visible) requestFrame();
+    }, { threshold: 0 }).observe(stage);
+  }
+
+  select(core);
+  if (reduce) {
+    for (let i = 0; i < 500; i++) step();
+    draw();
+  } else {
+    requestFrame();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   The tank
+   ══════════════════════════════════════════════════════════ */
+
+interface Worm {
+  id: string;
+  name: string;
+  cve: string;
+  vector: string;
+  spread: number;
+  effect: 'none' | 'crash' | 'shutdown' | 'cure';
+  note: string;
+}
+
+const WORMS: Worm[] = [
+  { id: 'slammer', name: 'SQL Slammer', cve: 'CVE-2002-0649',
+    vector: 'UDP 1434 · SQL Resolution Service', spread: 30, effect: 'none',
+    note: '376 bytes, one packet. 75,000 victims in ten minutes. Memory-only, so a reboot clears it.' },
+  { id: 'blaster', name: 'Blaster', cve: 'CVE-2003-0352',
+    vector: 'TCP 135 · RPC DCOM', spread: 58, effect: 'crash',
+    note: 'Crashed the RPC service and put the host into a reboot loop.' },
+  { id: 'sasser', name: 'Sasser', cve: 'CVE-2003-0533',
+    vector: 'TCP 445 · LSASS', spread: 74, effect: 'shutdown',
+    note: 'Crashed LSASS, which put the infected machine on a shutdown countdown.' },
+  { id: 'welchia', name: 'Welchia', cve: 'CVE-2003-0352',
+    vector: 'TCP 135 · RPC DCOM + WebDAV', spread: 66, effect: 'cure',
+    note: 'Used the same exploit as Blaster, then deleted Blaster and installed the patch.' },
+];
+
+const wormById: Record<string, Worm> = {};
+for (const w of WORMS) wormById[w.id] = w;
+
+const CONTAINERS = [
+  'ipa', 'panel', 'dns', 'media', 'cfproxy', 'trilium',
+  'finance', 'twitch', 'changes', 'timeline', 'home', 'monitor',
+];
+
+type CellState = 'clean' | 'infected' | 'patched' | 'crashed';
+
+interface Cell {
+  name: string;
+  i: number;
+  state: CellState;
+  worm: string | null;
+  timer: number;
+  spawn: number;
+  flash: number;
+  x: number;
+  y: number;
+}
+
+interface Bug {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  target: number;
+  worm: string;
+  life: number;
+  dead: boolean;
+}
+
+export function initTank(): void {
+  const cv = document.getElementById('tank-canvas') as HTMLCanvasElement | null;
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return;
+
+  const stage = cv.parentElement as HTMLElement;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let cells: Cell[] = [];
+  let bugs: Bug[] = [];
+  let tankLinks: { a: number; b: number }[] = [];
+  let cellR = 20;
+  let W = 0;
+  let H = 0;
+  let tick = 0;
+  let quiet = 0;
+  let wipeTimer = 0;
+  let C = readPalette();
+
+  let visible = false;
+  let frameQueued = false;
+  let dirty = true;
+
+  const LOG: { t: string; text: string; kind: string }[] = [];
+  const logEl = document.getElementById('tank-log');
+  const ro = {
+    kind: document.getElementById('tank-ro-kind'),
+    label: document.getElementById('tank-ro-label'),
+    desc: document.getElementById('tank-ro-desc'),
+  };
+
+  function log(text: string, kind: string): void {
+    const t = new Intl.DateTimeFormat('en-CA', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    }).format(new Date());
+    LOG.unshift({ t, text, kind });
+    if (LOG.length > 4) LOG.pop();
+    if (!logEl) return;
+    logEl.replaceChildren(
+      ...LOG.map((e) => {
+        const li = document.createElement('li');
+        li.dataset.k = e.kind;
+        const time = document.createElement('time');
+        time.textContent = e.t;
+        const span = document.createElement('span');
+        span.textContent = e.text;
+        li.append(time, span);
+        return li;
+      }),
+    );
+  }
+
+  function setReadout(kind: string, label: string, desc: string): void {
+    if (ro.kind) ro.kind.textContent = kind;
+    if (ro.label) ro.label.textContent = label;
+    if (ro.desc) ro.desc.textContent = desc;
+  }
+
+  function build(): void {
+    cells = [];
+    bugs = [];
+    tankLinks = [];
+    tick = 0;
+    quiet = 0;
+    wipeTimer = 0;
+    cellR = Math.max(13, Math.min(21, Math.min(W, H) * 0.044));
+
+    const cx = W * 0.5;
+    const cy = H * 0.5;
+    const maxR = Math.min(W, H) * 0.38;
+
+    CONTAINERS.forEach((name, i) => {
+      const ang = i * 2.399963;
+      const r = maxR * Math.sqrt((i + 0.5) / CONTAINERS.length);
+      cells.push({
+        name, i, state: 'clean', worm: null, timer: 0, spawn: 0, flash: 0,
+        x: cx + Math.cos(ang) * r,
+        y: cy + Math.sin(ang) * r,
+      });
+    });
+
+    const seen = new Set<string>();
+    cells.forEach((c) => {
+      cells
+        .filter((o) => o !== c)
+        .map((o) => ({ o, d: Math.hypot(o.x - c.x, o.y - c.y) }))
+        .sort((p, q) => p.d - q.d)
+        .slice(0, 2)
+        .forEach(({ o }) => {
+          const key = [c.i, o.i].sort((x, y) => x - y).join('-');
+          if (seen.has(key)) return;
+          seen.add(key);
+          tankLinks.push({ a: c.i, b: o.i });
+        });
+    });
+  }
+
+  const vulnerable = () => cells.filter((c) => c.state === 'clean');
+
+  function infect(c: Cell, w: Worm): void {
+    if (c.state === 'patched') return;
+    if (w.effect === 'cure') {
+      const had = c.worm === 'blaster' && c.state === 'infected';
+      c.state = 'patched';
+      c.worm = 'welchia';
+      c.timer = 0;
+      c.spawn = 0;
+      c.flash = 1;
+      log(had ? `welchia removed blaster from ${c.name}` : `${c.name} patched by welchia`, 'ok');
+      return;
+    }
+    c.state = 'infected';
+    c.worm = w.id;
+    c.spawn = 0;
+    c.flash = 1;
+    log(`${c.name} infected — ${w.name}`, 'bad');
+    if (w.effect === 'crash') c.timer = 210;
+    if (w.effect === 'shutdown') c.timer = 190;
+    if (w.effect === 'none') c.timer = 240;
+  }
+
+  function spawnBug(fromIdx: number, worm: string): void {
+    if (bugs.length >= 4) return;
+    const w = wormById[worm];
+    const pool = w && w.effect === 'cure'
+      ? cells.filter((c) => c.i !== fromIdx && (c.state === 'clean' || c.state === 'infected'))
+      : vulnerable().filter((c) => c.i !== fromIdx);
+    if (!pool.length) return;
+    const t = pool[Math.floor(Math.random() * pool.length)];
+    const s = cells[fromIdx];
+    const ang = Math.atan2(t.y - s.y, t.x - s.x);
+    bugs.push({
+      x: s.x, y: s.y,
+      vx: Math.cos(ang) * 0.8, vy: Math.sin(ang) * 0.8,
+      target: t.i, worm, life: 0, dead: false,
+    });
+  }
+
+  function release(id: string): void {
+    const w = wormById[id];
+    if (!w) return;
+    const pool = w.effect === 'cure'
+      ? cells.filter((c) => c.state === 'clean' || c.state === 'infected')
+      : vulnerable();
+    if (!pool.length) return;
+    const victim = pool[Math.floor(Math.random() * pool.length)];
+    infect(victim, w);
+    log(`${w.name} got in — ${victim.name}`, 'warn');
+  }
+
+  function simulate(): void {
+    tick++;
+
+    const active = cells.some((c) => c.state === 'infected' || c.state === 'crashed');
+    if (!active && !bugs.length) {
+      if (++quiet > 110) {
+        quiet = 0;
+        const pool = vulnerable();
+        if (pool.length) release(WORMS[Math.floor(Math.random() * WORMS.length)].id);
+      }
+    } else {
+      quiet = 0;
+    }
+
+    for (const c of cells) {
+      if (c.state === 'crashed') {
+        if (c.timer > 0 && --c.timer === 0) {
+          c.state = 'clean';
+          c.flash = 1;
+          log(`${c.name} rebooted`, 'ok');
+        }
+        continue;
+      }
+      const spreading = c.state === 'infected' || (c.state === 'patched' && c.worm === 'welchia');
+      if (!spreading || !c.worm) continue;
+      const w = wormById[c.worm];
+      if (!w) continue;
+      if (++c.spawn >= w.spread) {
+        c.spawn = 0;
+        spawnBug(c.i, c.worm);
+      }
+      if (c.timer > 0 && --c.timer === 0) {
+        if (w.effect === 'crash') {
+          c.state = 'crashed';
+          c.worm = null;
+          c.timer = 120;
+          c.flash = 1;
+          log(`${c.name} crashed`, 'bad');
+        } else if (w.effect === 'shutdown') {
+          c.state = 'clean';
+          c.worm = null;
+          c.flash = 1;
+          log(`${c.name} rebooted on the shutdown timer`, 'ok');
+        } else if (w.effect === 'none') {
+          c.state = 'clean';
+          c.worm = null;
+          c.flash = 1;
+          log(`${c.name} cleared — memory-only worm`, 'ok');
+        }
+      }
+    }
+
+    for (const b of bugs) {
+      const t = cells[b.target];
+      if (!t || t.state === 'patched') {
+        const pool = vulnerable();
+        if (!pool.length) { b.dead = true; continue; }
+        b.target = pool[Math.floor(Math.random() * pool.length)].i;
+        continue;
+      }
+      const w = wormById[b.worm];
+      const ang = Math.atan2(t.y - b.y, t.x - b.x);
+      b.vx += Math.cos(ang) * 0.05;
+      b.vy += Math.sin(ang) * 0.05;
+      b.vx += (Math.random() - 0.5) * 0.11;
+      b.vy += (Math.random() - 0.5) * 0.11;
+      const sp = Math.hypot(b.vx, b.vy) || 1;
+      if (sp > 1.45) { b.vx = (b.vx / sp) * 1.45; b.vy = (b.vy / sp) * 1.45; }
+      b.x += b.vx;
+      b.y += b.vy;
+      b.life++;
+      if (b.x < 12) { b.x = 12; b.vx = Math.abs(b.vx); }
+      if (b.x > W - 12) { b.x = W - 12; b.vx = -Math.abs(b.vx); }
+      if (b.y < 12) { b.y = 12; b.vy = Math.abs(b.vy); }
+      if (b.y > H - 12) { b.y = H - 12; b.vy = -Math.abs(b.vy); }
+
+      if (Math.hypot(t.x - b.x, t.y - b.y) < cellR * 0.85 && w) {
+        if (t.state === 'clean' || (w.effect === 'cure' && t.state === 'infected')) infect(t, w);
+        b.dead = true;
+      }
+    }
+    bugs = bugs.filter((b) => !b.dead && b.life < 1400);
+
+    if (++wipeTimer > 520) {
+      wipeTimer = 0;
+      const patched = cells.filter((c) => c.state === 'patched');
+      if (patched.length) {
+        const v = patched[Math.floor(Math.random() * patched.length)];
+        v.state = 'clean';
+        v.worm = null;
+        v.flash = 1;
+        log(`${v.name} rebuilt — patch gone`, 'ok');
+      }
+    }
+
+    for (const c of cells) if (c.flash > 0) c.flash -= 0.02;
+
+    const inf = cells.filter((c) => c.state === 'infected').length;
+    const down = cells.filter((c) => c.state === 'crashed').length;
+    const patched = cells.filter((c) => c.state === 'patched').length;
+    const st = document.getElementById('tank-state');
+    if (st) {
+      st.textContent = inf ? `${inf} infected`
+        : down ? `${down} down`
+        : patched ? `${patched} patched`
+        : 'all clean';
+      st.style.color = inf ? C.live : '';
+    }
+  }
+
+  function draw(): void {
+    ctx!.clearRect(0, 0, W, H);
+
     for (const l of tankLinks) {
       const a = cells[l.a];
       const b = cells[l.b];
@@ -645,7 +737,6 @@ export function initMap(): void {
         ctx!.fillStyle = `${C.live}22`;
         ctx!.fill();
       }
-      // patched hosts wear a ring: immune, and visibly so
       if (patched) {
         ctx!.beginPath();
         ctx!.arc(c.x, c.y, r + 4, 0, Math.PI * 2);
@@ -693,7 +784,6 @@ export function initMap(): void {
       ctx!.fillText(c.name, c.x, c.y);
     }
 
-    // viruses, swimming
     for (const b of bugs) {
       for (let k = 5; k >= 1; k--) {
         const px = b.x - b.vx * k * 1.7;
@@ -720,27 +810,6 @@ export function initMap(): void {
     }
   }
 
-  function draw(): void {
-    ctx!.clearRect(0, 0, W, H);
-    if (mode === 'map') drawMap();
-    else drawTank();
-  }
-
-  /**
-   * The loop parks itself. A settled map and a scrolled-away hero cost nothing;
-   * anything that changes state calls requestFrame() to wake it.
-   */
-  let visible = true;
-  let frameQueued = false;
-  let dirty = true;
-
-  function isSettled(): boolean {
-    for (const n of nodes) {
-      if (Math.abs(n.vx) > 0.04 || Math.abs(n.vy) > 0.04) return false;
-    }
-    return true;
-  }
-
   function requestFrame(): void {
     if (frameQueued) return;
     frameQueued = true;
@@ -750,38 +819,19 @@ export function initMap(): void {
   function loop(): void {
     frameQueued = false;
     if (!visible) return;
-
-    const running = mode === 'run';
-    const moving = running || !isSettled();
-
-    if (moving) step();
-    if (running) simulate();
-    if (moving || dirty) {
-      draw();
-      dirty = false;
-    }
-    if (moving) requestFrame();
+    simulate();
+    draw();
+    requestFrame();
   }
 
-  /* ── interaction ───────────────────────────────────────── */
-  function hitNode(x: number, y: number): Node | null {
-    let best: Node | null = null;
-    let bd = Infinity;
-    for (const n of nodes) {
-      const d = Math.hypot(n.x - x, n.y - y);
-      if (d < Math.max(n.r + 12, 26) && d < bd) { bd = d; best = n; }
-    }
-    return best;
-  }
-
-  function hitCell(x: number, y: number): Cell | null {
-    let best: Cell | null = null;
-    let bd = Infinity;
-    for (const c of cells) {
-      const d = Math.hypot(c.x - x, c.y - y);
-      if (d < cellR + 6 && d < bd) { bd = d; best = c; }
-    }
-    return best;
+  function resize(): void {
+    const size = fitCanvas(cv!, stage);
+    if (!size) return;
+    W = size.w;
+    H = size.h;
+    build();
+    dirty = true;
+    if (visible) requestFrame();
   }
 
   const local = (e: PointerEvent) => {
@@ -789,188 +839,50 @@ export function initMap(): void {
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
 
-  cv.addEventListener('pointerdown', (e) => {
-    if (mode !== 'map') return;
-    const p = local(e);
-    const n = hitNode(p.x, p.y);
-    if (!n) return;
-    cv.setPointerCapture(e.pointerId);
-    cv.classList.add('is-dragging');
-    requestFrame();
-    drag = { n, px: p.x, py: p.y };
-    n.fixed = true;
-    select(n);
-  });
-
   cv.addEventListener('pointermove', (e) => {
     const p = local(e);
-
-    if (mode === 'run') {
-      const c = hitCell(p.x, p.y);
-      if (c) {
-        const w = c.worm ? wormById[c.worm] : null;
-        if (c.state === 'infected' && w) {
-          setReadout(`${w.name} · ${w.cve}`, c.name, `${w.vector}. ${w.note}`);
-        } else if (c.state === 'patched') {
-          setReadout('patched', c.name, 'Welchia got here first. It is immune until something new arrives.');
-        } else if (c.state === 'crashed') {
-          setReadout('crashed', c.name, 'The RPC service is down. The monitor will rebuild it.');
-        } else {
-          setReadout('unpatched', c.name, 'Nothing on it yet. No patches, so it is only a matter of time.');
-        }
-        cv.style.cursor = 'pointer';
+    let best: Cell | null = null;
+    let bd = Infinity;
+    for (const c of cells) {
+      const d = Math.hypot(c.x - p.x, c.y - p.y);
+      if (d < cellR + 6 && d < bd) { bd = d; best = c; }
+    }
+    if (best) {
+      const w = best.worm ? wormById[best.worm] : null;
+      if (best.state === 'infected' && w) {
+        setReadout(`${w.name} · ${w.cve}`, best.name, `${w.vector}. ${w.note}`);
+      } else if (best.state === 'patched') {
+        setReadout('patched', best.name, 'Welchia got here first. It is immune until the patch is rebuilt away.');
+      } else if (best.state === 'crashed') {
+        setReadout('crashed', best.name, 'The RPC service is down. It will reboot.');
       } else {
-        setReadout('the tank', 'four worms, twelve hosts',
-          'Pick a worm to release it. They behave the way they actually did.');
-        cv.style.cursor = 'default';
+        setReadout('unpatched', best.name, 'Nothing on it yet. No patches, so it is only a matter of time.');
       }
-      return;
-    }
-
-    if (drag) {
-      const n = drag.n;
-      n.x = p.x;
-      n.y = p.y;
-      n.vx = (p.x - drag.px) * 0.9;
-      n.vy = (p.y - drag.py) * 0.9;
-      drag.px = p.x;
-      drag.py = p.y;
-      return;
-    }
-    const h = hitNode(p.x, p.y);
-    for (const n of nodes) n.hot = n === h;
-    cv.style.cursor = h ? 'grab' : 'default';
-  });
-
-  function release(e: PointerEvent): void {
-    if (!drag) return;
-    const n = drag.n;
-    n.fixed = false;
-    n.vx = Math.max(-24, Math.min(24, n.vx));
-    n.vy = Math.max(-24, Math.min(24, n.vy));
-    drag = null;
-    dirty = true;
-    requestFrame();
-    cv!.classList.remove('is-dragging');
-    if (cv!.hasPointerCapture(e.pointerId)) cv!.releasePointerCapture(e.pointerId);
-  }
-
-  cv.addEventListener('pointerup', release);
-  cv.addEventListener('pointercancel', release);
-
-  /* ── readout ───────────────────────────────────────────── */
-  const ro = {
-    kind: document.getElementById('ro-kind'),
-    label: document.getElementById('ro-label'),
-    desc: document.getElementById('ro-desc'),
-  };
-
-  function setReadout(kind: string, label: string, desc: string): void {
-    dirty = true;
-    if (ro.kind) ro.kind.textContent = kind;
-    if (ro.label) ro.label.textContent = label;
-    if (ro.desc) ro.desc.textContent = desc;
-  }
-
-  function select(n: Node): void {
-    selected = n;
-    dirty = true;
-    requestFrame();
-    setReadout(n.kind, n.label, n.desc);
-  }
-
-  cv.addEventListener('keydown', (e) => {
-    if (e.key === 't' || e.key === 'T') {
-      setMode(mode === 'run' ? 'map' : 'run');
-      return;
-    }
-    if (mode !== 'map') return;
-    const i = nodes.indexOf(selected);
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      select(nodes[(i + 1) % nodes.length]);
-    }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      select(nodes[(i - 1 + nodes.length) % nodes.length]);
-    }
-  });
-
-  /* ── depth switch ──────────────────────────────────────── */
-  const btnMap = document.getElementById('depth-map');
-  const btnRun = document.getElementById('depth-run');
-  const head = document.getElementById('tankhead');
-  const hint = document.getElementById('ro-hint');
-
-  function setMode(m: 'map' | 'run'): void {
-    mode = m;
-    dirty = true;
-    requestFrame();
-    btnMap?.setAttribute('aria-pressed', String(m === 'map'));
-    btnRun?.setAttribute('aria-pressed', String(m === 'run'));
-    LOG.length = 0;
-    renderLog();
-
-    if (m === 'run') {
-      buildTank();
-      tick = 0;
-      if (head) head.hidden = false;
-      if (hint) hint.textContent = 'hover a host · “map” goes back';
+      cv.style.cursor = 'pointer';
+    } else {
       setReadout('the tank', 'twelve unpatched hosts',
         'Worms get in and spread. Hover a host to see what is on it.');
-      const st1 = document.getElementById('stat-hosts');
-      const st2 = document.getElementById('stat-debt');
-      if (st1) { st1.textContent = 'all clean'; st1.style.color = ''; }
-      if (st2) st2.textContent = 'patch debt 0';
-    } else {
-      if (head) head.hidden = true;
-      if (hint) hint.textContent = 'drag to move · “the tank” opens the network';
-      const st1 = document.getElementById('stat-hosts');
-      const st2 = document.getElementById('stat-debt');
-      if (st1) { st1.textContent = `${nodes.length - 1} projects on the map`; st1.style.color = ''; }
-      if (st2) st2.textContent = `${seeds.length - 1} machines`;
-      select(core);
+      cv.style.cursor = 'default';
     }
-  }
+  });
 
-  btnMap?.addEventListener('click', () => setMode('map'));
-  btnRun?.addEventListener('click', () => setMode('run'));
-
-
-
-  const onPalette = () => {
+  window.addEventListener('palettechange', () => {
     C = readPalette();
     dirty = true;
-    requestFrame();
-  };
-  window.addEventListener('palettechange', onPalette);
+    if (visible) requestFrame();
+  });
 
-  /* ── boot ──────────────────────────────────────────────── */
   resize();
   window.addEventListener('resize', resize);
-
-  if ('ResizeObserver' in window) {
-    const observer = new ResizeObserver(() => resize());
-    observer.observe(stage);
-  }
-  document.fonts?.ready.then(() => resize()).catch(() => {});
-
-  select(core);
+  if ('ResizeObserver' in window) new ResizeObserver(() => resize()).observe(stage);
 
   if ('IntersectionObserver' in window) {
-    new IntersectionObserver(
-      (entries) => {
-        visible = entries[0]?.isIntersecting ?? true;
-        if (visible) requestFrame();
-      },
-      { threshold: 0 },
-    ).observe(stage);
-  }
-
-  if (reduce) {
-    for (let i = 0; i < 500; i++) step();
-    draw();
+    new IntersectionObserver((entries) => {
+      visible = entries[0]?.isIntersecting ?? false;
+      if (visible) requestFrame();
+    }, { threshold: 0.1 }).observe(stage);
   } else {
+    visible = true;
     requestFrame();
   }
 }

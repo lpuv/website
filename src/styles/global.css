@@ -385,26 +385,9 @@ p { text-wrap: pretty; }
   touch-action: pan-y;
 }
 
-/* depth control, tank header, legend, event log */
-.depth{position:absolute;right:0;top:0;z-index:5;display:flex;gap:.4rem}
-.depth button{
-  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
-  padding:.5rem .7rem;border:1px solid var(--line-2);border-radius:var(--radius);
-  background:var(--bg);color:var(--text-2);cursor:pointer;
-  transition:color .16s var(--ease),border-color .16s var(--ease),background .16s var(--ease);
-}
-.depth button:hover{color:var(--text);border-color:var(--text)}
-.depth button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);
-  color:var(--accent-ink);font-weight:500}
 
-.tankhead{position:absolute;left:0;top:.2rem;z-index:5;max-width:min(330px,52%);pointer-events:none}
-.tankhead[hidden]{display:none}
-.tankhead__k{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent)}
-.tankhead__t{font-size:1rem;font-weight:600;letter-spacing:-.02em;margin-top:.15rem;line-height:1.2}
-.tankhead__d{font-size:.73rem;line-height:1.5;color:var(--text-2);margin-top:.3rem}
 
-.legend{margin-top:.5rem;display:flex;gap:.85rem;font-family:var(--font-mono);
+.legend{display:flex;flex-wrap:wrap;gap:.85rem;font-family:var(--font-mono);
   font-size:.59rem;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3)}
 .legend span{display:inline-flex;align-items:center;gap:.32rem}
 .legend i{width:8px;height:8px;border-radius:50%;display:block;flex:none}
@@ -1346,4 +1329,60 @@ p { text-wrap: pretty; }
     transition-duration: 0.001ms !important;
   }
   .js .reveal { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   The tank
+   -------------------------------------------------------------------------- */
+
+.tank { border-top: 1px solid var(--line); padding-block: clamp(2.6rem, 7vh, 4.5rem); }
+
+.tank__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+.tank__stage {
+  position: relative;
+  height: clamp(340px, 54vh, 520px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.tank__canvas { display: block; width: 100%; height: 100%; cursor: default; }
+.tank__canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+
+.tank__readout {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  max-width: min(330px, 62%);
+  pointer-events: none;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--accent);
+}
+
+.tank__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  justify-content: space-between;
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+@media (max-width: 760px) {
+  .tank__stage { height: 380px; }
+  .tank__readout { position: static; max-width: none; margin: 0.8rem 0 0; }
 }

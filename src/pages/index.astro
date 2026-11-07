@@ -61,22 +61,7 @@ const list = (featured.length ? featured : allSystems).slice(0, 6);
     </div>
 
     <div class="hero__stage">
-      <div class="depth" role="group" aria-label="Map depth">
-        <button id="depth-map" type="button" aria-pressed="true">map</button>
-        <button id="depth-run" type="button" aria-pressed="false">the tank</button>
-      </div>
 
-      <div class="tankhead" id="tankhead" hidden>
-        <span class="tankhead__k">the tank</span>
-        <h2 class="tankhead__t">Twelve VMs, no patches</h2>
-        <p class="tankhead__d">They run whatever arrives by email and share files with each other. A monitor wipes infected machines and rebuilds them at random. Watch the orange ones — those are the viruses.</p>
-        <div class="legend">
-          <span><i class="lg-clean"></i>unpatched</span>
-          <span><i class="lg-inf"></i>infected</span>
-          <span><i class="lg-wip"></i>patched</span>
-          <span><i class="lg-down"></i>crashed</span>
-        </div>
-      </div>
 
       <canvas
         id="map"
@@ -94,8 +79,7 @@ const list = (featured.length ? featured : allSystems).slice(0, 6);
           <span class="node-tip__label" id="ro-label">pinwheel</span>
           <span class="node-tip__desc" id="ro-desc">One Proxmox host. Twelve NixOS containers on top of it. Everything else here runs on this.</span>
         </div>
-        <span class="node-tip__go" id="ro-hint">drag to move · “the tank” opens the network</span>
-        <ul class="maplog" id="map-log" aria-live="polite"></ul>
+        <span class="node-tip__go">drag a machine · arrow keys to cycle</span>
       </div>
 
       <p id="map-help" class="sr-only">
@@ -142,12 +126,46 @@ const list = (featured.length ? featured : allSystems).slice(0, 6);
       </div>
     </div>
   </section>
+
+  <section class="tank" aria-labelledby="tank-title">
+    <div class="wrap">
+      <div class="tank__head">
+        <div>
+          <h2 class="section__title" id="tank-title">The tank</h2>
+          <p class="section__sub">Twelve unpatched hosts on one network. Worms get in and spread the way they actually did. The monitor patches and rebuilds at random.</p>
+        </div>
+        <div class="legend">
+          <span><i class="lg-clean"></i>unpatched</span>
+          <span><i class="lg-inf"></i>infected</span>
+          <span><i class="lg-wip"></i>patched</span>
+          <span><i class="lg-down"></i>crashed</span>
+        </div>
+      </div>
+
+      <div class="tank__stage">
+        <canvas id="tank-canvas" class="tank__canvas" tabindex="0" role="application"
+          aria-label="A simulated network of twelve unpatched hosts. Worms spread between them. Hover a host to see what is on it."></canvas>
+        <div class="tank__readout" aria-live="polite">
+          <span class="node-tip__kind" id="tank-ro-kind">the tank</span>
+          <span class="node-tip__label" id="tank-ro-label">twelve unpatched hosts</span>
+          <span class="node-tip__desc" id="tank-ro-desc">Worms get in and spread. Hover a host to see what is on it.</span>
+        </div>
+        <ul class="maplog" id="tank-log" aria-live="polite"></ul>
+      </div>
+
+      <p class="tank__foot">
+        <span id="tank-state">all clean</span>
+        <span>simulated · none of it is live traffic</span>
+      </p>
+    </div>
+  </section>
 </Base>
 
 <script>
-  import { initMap } from '../scripts/map';
+  import { initMap, initTank } from '../scripts/map';
 
   initMap();
+  initTank();
 
   const clock = document.getElementById('clock');
   const tick = () => {
