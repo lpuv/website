@@ -140,7 +140,11 @@ export class Dialogue {
         }
         const ch = text[i];
         show(text.slice(0, i + 1));
-        if (!gaster && ch !== ' ' && i % 2 === 0) play('blip', voice);
+        if (ch !== ' ') {
+          if (gaster) {
+            if (i % 3 === 0) play('gaster');
+          } else if (i % 2 === 0) play('blip', voice);
+        }
         const pause = /[.,!?]/.test(ch) && text[i + 1] === ' ';
         const wait = gaster ? (pause ? 320 : 55) : pause ? 140 : ch === '…' ? 220 : 26;
         await new Promise((r) => setTimeout(r, wait));

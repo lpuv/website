@@ -9,15 +9,19 @@
  * a quiet synthesized drone plays instead.
  */
 
-export type SoundName = 'blip' | 'move' | 'select' | 'item' | 'save' | 'music';
+export type SoundName = 'blip' | 'move' | 'select' | 'item' | 'save' | 'music' | 'gaster';
 
 const KEY = 'cc.sound';
+/** Gaster's voice file is loud and harsh; keep it well under everything else. */
+const GASTER_VOL = 0.06;
 const MUSIC_VOL = 0.12; // background level: under the text blips, never in front
 const FADE = 1.2;
 
 let ctx: AudioContext | null = null;
 let loaded: Promise<void> | null = null;
 const buffers = new Map<SoundName, AudioBuffer>();
+/** Start times (s) of each separate blip in the Gaster voice file. */
+let gasterOnsets: number[] = [];
 let musicNode: { stop: () => void } | null = null;
 let wantMusic = false;
 
@@ -44,7 +48,9 @@ async function loadManifest(a: AudioContext) {
       Object.entries(manifest).map(async ([name, file]) => {
         try {
           const data = await (await fetch(`/sounds/${file}`)).arrayBuffer();
-          buffers.set(name as SoundName, await a.decodeAudioData(data));
+          const buf = await a.decodeAudioData(data);
+          buffers.set(name as SoundName, buf);
+          if (name === 'gaster') gasterOnsets = onsets(buf);
         } catch {
           /* missing or undecodable: fall back to synth */
         }
@@ -53,6 +59,38 @@ async function loadManifest(a: AudioContext) {
   } catch {
     /* no manifest: synth only */
   }
+}
+
+/** Finds where each sound starts after a gap of silence (5ms windows). */
+function onsets(buf: AudioBuffer): number[] {
+  const data = buf.getChannelData(0);
+  const win = Math.round(buf.sampleRate * 0.005);
+  const out: number[] = [];
+  let quiet = 0;
+  for (let i = 0; i + win < data.length; i += win) {
+    let sum = 0;
+    for (let j = i; j < i + win; j++) sum += data[j] * data[j];
+    const loud = Math.sqrt(sum / win) > 0.02;
+    if (loud && (out.length === 0 || quiet >= 6)) out.push(i / buf.sampleRate);
+    quiet = loud ? 0 : quiet + 1;
+  }
+  return out;
+}
+
+/** One Gaster blip: a random slice of the voice file, short and quiet. */
+function gasterBlip() {
+  const a = ctx!;
+  const buf = buffers.get('gaster');
+  if (!buf || !gasterOnsets.length) return;
+  const at = gasterOnsets[Math.floor(Math.random() * gasterOnsets.length)];
+  const src = a.createBufferSource();
+  src.buffer = buf;
+  const g = a.createGain();
+  const t = a.currentTime;
+  g.gain.setValueAtTime(GASTER_VOL, t);
+  g.gain.linearRampToValueAtTime(0, t + 0.11);
+  src.connect(g).connect(a.destination);
+  src.start(t, at, 0.12);
 }
 
 function playBuffer(name: SoundName, gain = 0.6) {
@@ -82,6 +120,7 @@ function tone(freq: number, start: number, dur: number, type: OscillatorType = '
 export function play(name: Exclude<SoundName, 'music'>, voice = 1) {
   const a = audio();
   if (!a) return;
+  if (name === 'gaster') return gasterBlip();
   if (buffers.has(name)) return playBuffer(name);
   switch (name) {
     case 'blip':

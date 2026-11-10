@@ -72,7 +72,8 @@ an empty void where Gaster speaks, in the style of the Chapter 1 intro.
 
 - His lines type out in Wingdings (letters mapped to the Unicode symbols Wingdings draws, rendered
   as flat white silhouettes so emoji don't show in colour), with the English translation laid over
-  them. Screen readers get the English. He is silent and slow; the music stops.
+  them. Screen readers get the English. He types slowly, with a quiet blip from his voice file every third letter; the music stops.
+  His lines stay vague: experiments, things that shouldn't be opened, no project names.
 - He ends with "NOW. YOU MUST CREATE A VESSEL." Create goes to the contact form; Refuse returns you
   to the tree, and FRIEND is gone until reload.
 
@@ -91,7 +92,7 @@ flat rounded leaf strokes leaning right, magenta in the shadows, a slanted navy 
 hide behind. Real files override it:
 
 - `public/sprites/manifest.json` → `tree`, `player`, `friend` (FRIEND appears only if this is set)
-- `public/sounds/manifest.json` → `music` (looped), plus optional effects (`blip`, `move`, `select`,
+- `public/sounds/manifest.json` → `music` (looped), `gaster` (voice blips), plus optional effects (`blip`, `move`, `select`,
   `item`, `save`)
 
 ## Credits

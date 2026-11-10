@@ -271,7 +271,7 @@ export function initRoom() {
     P.x = W / 2;
     P.y = H * 0.55;
     P.moving = false;
-    await new Promise((r) => setTimeout(r, reduce ? 0 : 1400));
+    await new Promise((r) => setTimeout(r, reduce ? 0 : 2000));
 
     const voice = (text: string) => ({ text, voice: GASTER - 0.1 });
     const pick = await dlg.say(
@@ -279,11 +279,11 @@ export function initRoom() {
         voice('ARE YOU THERE?'),
         voice('ARE WE CONNECTED?'),
         voice('EXCELLENT. TRULY EXCELLENT.'),
-        voice('YOU WALKED WHERE THERE WAS NO FLOOR. VERY FEW DO.'),
+        voice('YOU WALKED WHERE THERE WAS NO FLOOR.'),
+        voice('FEW DO. FEWER STILL ARE MEANT TO.'),
         voice('THE MAN BEHIND THE TREE FORGETS. I DO NOT.'),
-        voice('A CLUSTER, TAKEN APART BY ITS OWN BUILDER.'),
-        voice('A HOMELAB, REBUILT FROM A SINGLE FILE.'),
-        voice('OLD SOFTWARE, OPENED TO SEE HOW IT BREAKS.'),
+        voice('SHE BUILDS THINGS THAT MUST KEEP RUNNING.'),
+        voice('AND SHE OPENS THINGS THAT WERE NEVER MEANT TO BE OPENED.'),
         voice('VERY, VERY INTERESTING.'),
         {
           ...voice('NOW. YOU MUST CREATE A VESSEL.'),
