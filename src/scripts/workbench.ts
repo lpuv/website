@@ -38,6 +38,8 @@ type Thing = {
   lines: () => string[];
   /** Record to offer at the end. */
   href?: string;
+  /** Where its sparkle shows, room-local. */
+  glint: [number, number];
 };
 
 /** Montréal's hour, for the sky. */
@@ -82,6 +84,8 @@ export function initWorkbench() {
   // Player position is room-local so resizes don't move it.
   const P = { x: 150, y: 200, dir: 1, moving: false, step: 0 };
   let pending: Thing | null = null;
+  let hovered: Thing | null = null;
+  const checked = new Set<string>(JSON.parse(localStorage.getItem('cc.checked') ?? '[]'));
   /** Waypoints from a click, found by a breadth-first search over a coarse grid. */
   let path: { x: number; y: number }[] = [];
   const keys = new Set<string>();
@@ -98,6 +102,7 @@ export function initWorkbench() {
   const things: Thing[] = [
     {
       id: 'window',
+      glint: [80, 16],
       hit: [20, 10, 66, 54],
       spot: [53, 112],
       lines: () => [
@@ -109,6 +114,7 @@ export function initWorkbench() {
     },
     {
       id: 'cats',
+      glint: [150, 26],
       hit: [98, 16, 56, 32],
       spot: [126, 112],
       lines: () => [
@@ -120,6 +126,7 @@ export function initWorkbench() {
     },
     {
       id: 'pinwheel',
+      glint: [187, 23],
       hit: [164, 18, 26, 18],
       spot: [176, 124],
       lines: () => [
@@ -132,6 +139,7 @@ export function initWorkbench() {
     },
     {
       id: 'tetris',
+      glint: [212, 16],
       hit: [194, 14, 20, 20],
       spot: [204, 124],
       lines: () => [
@@ -142,6 +150,7 @@ export function initWorkbench() {
     },
     {
       id: 'laptop',
+      glint: [247, 58],
       hit: [220, 54, 30, 24],
       spot: [235, 124],
       lines: () => [
@@ -153,6 +162,7 @@ export function initWorkbench() {
     },
     {
       id: 'launchpad',
+      glint: [273, 70],
       hit: [254, 66, 22, 14],
       spot: [264, 124],
       lines: () => [
@@ -164,6 +174,7 @@ export function initWorkbench() {
     },
     {
       id: 'grimoire',
+      glint: [155, 114],
       hit: [132, 110, 24, 16],
       spot: [144, 134],
       lines: () => [
@@ -175,6 +186,7 @@ export function initWorkbench() {
     },
     {
       id: 'box',
+      glint: [290, 151],
       hit: [258, 146, 34, 26],
       spot: [248, 164],
       lines: () => [
@@ -286,6 +298,8 @@ export function initWorkbench() {
     pending = null;
     box.classList.toggle('dlg--top', P.y > 150);
     if (t.id === 'window') localStorage.setItem('cc.far', '1');
+    checked.add(t.id);
+    localStorage.setItem('cc.checked', JSON.stringify([...checked]));
     const lines = t.lines();
     if (!t.href) return void (await dlg.say(lines));
     const pick = await dlg.say(
@@ -374,8 +388,10 @@ export function initWorkbench() {
     if (!path.length && t && Math.hypot(P.x - dest.x, P.y - dest.y) < 6) void check(t);
   });
   view.addEventListener('pointermove', (e) => {
-    view.style.cursor = thingAt(toLocal(e)) ? 'pointer' : '';
+    hovered = thingAt(toLocal(e)) ?? null;
+    view.style.cursor = hovered ? 'pointer' : '';
   });
+  view.addEventListener('pointerleave', () => (hovered = null));
 
   new IntersectionObserver(([entry]) => {
     visible = entry.intersectionRatio > 0.35;
@@ -582,6 +598,52 @@ export function initWorkbench() {
     R(291, 150, 1, 20, '#6a5034');
   }
 
+  /** A four-point twinkle, a few pixels across. Phase 0..1. */
+  function sparkle(x: number, y: number, phase: number) {
+    const col = '#fff6b0';
+    if (reduce) {
+      R(x, y, 1, 1, col);
+      return;
+    }
+    const f = phase < 0.15 ? 1 : phase < 0.3 ? 2 : phase < 0.42 ? 1 : 0;
+    if (!f) return;
+    R(x, y, 1, 1, '#ffffff');
+    if (f >= 1) {
+      R(x - 1, y, 1, 1, col);
+      R(x + 1, y, 1, 1, col);
+      R(x, y - 1, 1, 1, col);
+      R(x, y + 1, 1, 1, col);
+    }
+    if (f >= 2) {
+      R(x - 2, y, 1, 1, '#ffd800');
+      R(x + 2, y, 1, 1, '#ffd800');
+      R(x, y - 2, 1, 1, '#ffd800');
+      R(x, y + 2, 1, 1, '#ffd800');
+    }
+  }
+
+  function drawSparkles(t: number) {
+    things.forEach((th, i) => {
+      if (checked.has(th.id)) return;
+      // Staggered, so they twinkle one at a time rather than in unison.
+      const phase = ((t / 2600 + i * 0.37) % 1 + 1) % 1;
+      sparkle(th.glint[0], th.glint[1], phase);
+    });
+  }
+
+  /** Yellow corner brackets around whatever is selected. */
+  function drawBrackets(th: Thing) {
+    const [x, y, w, h] = th.hit;
+    const c = '#ffd800';
+    const L = 3;
+    const x2 = x + w - 1;
+    const y2 = y + h - 1;
+    for (const [cx, cy, sx, sy] of [[x, y, 1, 1], [x2, y, -1, 1], [x, y2, 1, -1], [x2, y2, -1, -1]] as const) {
+      R(sx > 0 ? cx : cx - L + 1, cy, L, 1, c);
+      R(cx, sy > 0 ? cy : cy - L + 1, 1, L, c);
+    }
+  }
+
   function drawPlayer() {
     const img = playerImg ?? cat[P.moving ? Math.floor(P.step / 9) % 2 : 0];
     const bob = P.moving && Math.floor(P.step / 9) % 2 ? -1 : 0;
@@ -614,6 +676,9 @@ export function initWorkbench() {
       [P.y, drawPlayer],
     ];
     floorThings.sort((a, b) => a[0] - b[0]).forEach(([, f]) => f());
+    drawSparkles(t);
+    const sel = dlg.open ? null : hovered ?? nearest();
+    if (sel) drawBrackets(sel);
     out.imageSmoothingEnabled = false;
     out.drawImage(buf, 0, 0, view.width, view.height);
   }

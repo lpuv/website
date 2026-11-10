@@ -623,3 +623,6 @@ fieldset.field > legend { padding: 0; margin-bottom: 0.35rem; }
 [data-scene='tree'] .only-bench,
 :root:not([data-scene='tree']) .only-tree,
 :root:not([data-scene='tree']) .room__music { display: none !important; }
+
+.room__tap { display: none; font-family: var(--pixel); color: var(--dim); font-size: 0.95rem; width: 100%; }
+@media (max-width: 640px) { .room__tap { display: block; } }

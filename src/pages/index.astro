@@ -72,8 +72,10 @@ const fmt = (d: Date) =>
         <p class="room__music">
           ♪ Egg Room · arranged and performed by Trevor Alan Gomes
         </p>
+        <p class="room__tap only-bench" aria-hidden="true">(Tap things that sparkle to check them.)</p>
         <p class="room__controls" aria-hidden="true">
-          <kbd>WASD</kbd> walk · <kbd>Z</kbd> check · <kbd>X</kbd> skip · or click around
+          <span class="only-bench">Things that sparkle can be checked. Click them, or</span>
+          <kbd>WASD</kbd> walk · <kbd>Z</kbd> check · <kbd>X</kbd> skip<span class="only-tree"> · or click around</span>
         </p>
         <div class="actions">
           <button class="btn btn--primary only-tree" type="button" data-talk>
