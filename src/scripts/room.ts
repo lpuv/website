@@ -122,17 +122,17 @@ export function initRoom() {
 
     const opening: Line[] =
       n === 0
-        ? ['* (There is a tree here.)', '* (Well, there is a man here.)', man('oh. hello.'), menu('what are you looking for?')]
+        ? ['* (There is a tree here.)', '* (Well, there is a man here.)', man('Oh! Hello there. Welcome.'), man("This is Luna's place. I look after it while she's out."), menu('What brings you here?')]
         : n % 5 === 4
-          ? ['* (Well, there is a man here.)', man('you come back more than most people.'), menu("...sorry. what did you need?")]
-          : ['* (Well, there is a man here.)', menu(n === 1 ? 'oh. you came back. what are you looking for?' : 'hello again. what are you looking for?')];
+          ? ['* (Well, there is a man here.)', man('You keep finding this place. I like that about you.'), menu('What can I do for you?')]
+          : ['* (Well, there is a man here.)', menu(n === 1 ? 'Ah, you came back! Or have we met? Either way, welcome.' : 'Hello again! What can I do for you?')];
 
     let pick = await dlg.say(opening, { keepOpen: true });
     while (pick && pick !== 'bye') {
       if (pick === 'work') {
         await dlg.say([
-          man("it's down the path."),
-          man('she wrote down what was hard about each one. i liked that.'),
+          man('Down the path. You can\'t miss it.'),
+          man('She wrote down what was hard about each one. I think that is the best part.'),
         ]);
         scrollTo('work');
         return;
@@ -141,12 +141,12 @@ export function initRoom() {
       if (pick === 'who') {
         const knows = await dlg.say(
           [
-            man('luna puvilland. computer engineering at mcgill, class of 2029.'),
-            man("she leads command and data handling for mcgill's cubesat. it's going to space, eventually."),
-            man("...i've never been."),
-            man('she packages software for fedora, and takes old software apart to see how it breaks.'),
+            man('Luna Puvilland. She studies computer engineering at McGill, class of 2029.'),
+            man("She leads command and data handling for McGill's CubeSat. It's going to space one day!"),
+            man('Imagine that. Space!'),
+            man('She packages software for Fedora, too. And she takes old programs apart, to see how they break.'),
             {
-              ...man("she's looking for an internship. infrastructure, security, embedded. do you know of one?"),
+              ...man('She is looking for an internship. Infrastructure, security, embedded. Do you know of one?'),
               choices: [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }],
             },
           ],
@@ -155,20 +155,20 @@ export function initRoom() {
         if (knows === 'yes') {
           const w = await dlg.say(
             [
-              man('oh, good. you should tell her.'),
+              man('Wonderful! You should tell her. She would like that.'),
               { text: '* (Write to Luna?)', choices: [{ id: 'mail', label: 'Email her' }, { id: 'later', label: 'Later' }] },
             ],
             { keepOpen: true },
           );
           if (w === 'mail') return mail();
         } else {
-          await dlg.say([man("that's okay. neither do i.")], { keepOpen: true });
+          await dlg.say([man('Ah, well. If you hear of one, you know where to find her.')], { keepOpen: true });
         }
       }
 
       if (pick === 'egg') {
         if (inventory.has('egg')) {
-          await dlg.say([man('i only had the one.'), man("it's still in your ITEM menu.")], { keepOpen: true });
+          await dlg.say([man('I only had the one! It should still be in your ITEM menu.')], { keepOpen: true });
         } else {
           const take = await dlg.say(
             [
@@ -183,13 +183,13 @@ export function initRoom() {
             await dlg.say(
               [
                 '* (You got the EGG.)',
-                man("it's her resume. it's shaped like an egg. don't ask me why."),
+                man('That is her resume. Why is it an egg? Hm. Good question.'),
                 '* (It went into your ITEM menu.)',
               ],
               { keepOpen: true },
             );
           } else {
-            await dlg.say(['* (Well, the man put it back in his pocket.)', man("that's okay. it'll keep.")], { keepOpen: true });
+            await dlg.say(['* (Well, the man put it back in his pocket.)', man('Of course. It will keep.')], { keepOpen: true });
           }
         }
       }
@@ -197,10 +197,10 @@ export function initRoom() {
       if (pick === 'short') {
         const go = await dlg.say(
           [
-            man("sure. here's the short version."),
-            man('systems, security, embedded. mcgill, 2029. open to internships.'),
+            man('Of course! The short version.'),
+            man('Systems, security, embedded. McGill, 2029. Open to internships.'),
             {
-              ...man('where to?'),
+              ...man('Where will you go?'),
               choices: [
                 { id: 'resume', label: 'Resume' },
                 { id: 'mail', label: 'Email her' },
@@ -214,17 +214,17 @@ export function initRoom() {
         if (go === 'mail') return mail();
       }
 
-      pick = await dlg.say([menu('anything else?')], { keepOpen: true });
+      pick = await dlg.say([menu('Anything else?')], { keepOpen: true });
     }
 
     if (pick === 'bye') {
       const liked = await dlg.say(
-        [{ ...man("before you go. it's a nice tree, isn't it?"), choices: [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }] }],
+        [{ ...man('Before you go! What do you think of the tree?'), choices: [{ id: 'yes', label: "It's nice" }, { id: 'no', label: 'Not for me' }] }],
         { keepOpen: true },
       );
       await dlg.say([
-        man(liked === 'yes' ? 'i think so too.' : "that's okay. it's the only one i have."),
-        man('see you.'),
+        man(liked === 'yes' ? 'You have good taste. I like you!' : 'An honest opinion! I like you.'),
+        man('Take care. I am sure we will meet again.'),
         '* (Well, the man waved goodbye.)',
       ]);
       if (inventory.has('egg')) gone = true;
