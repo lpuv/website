@@ -521,3 +521,29 @@ a:hover > .soul, a:focus-visible > .soul, button:hover > .soul, button:focus-vis
 }
 a:hover .record-card__title > .soul, a:focus-visible .record-card__title > .soul,
 a:hover b > .soul, a:focus-visible b > .soul { visibility: visible; }
+
+/* About: modelled on the DELTARUNE POWER menu. Double-ruled box, portrait, stats, skills. */
+.power {
+  border: 3px solid var(--ink); outline: 1px solid var(--ink); outline-offset: -8px;
+  padding: clamp(1.3rem, 3vw, 2rem) clamp(1.3rem, 3vw, 2.2rem);
+  background: #000;
+}
+.power__head { display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 2px solid var(--line-dim); }
+.power__portrait { width: 48px; height: 48px; image-rendering: pixelated; border: 2px solid var(--line-dim); padding: 4px; box-sizing: content-box; }
+.power__name { font-family: var(--pixel); font-weight: 600; font-size: 1.9rem; line-height: 1; }
+.power__class { font-family: var(--pixel); color: var(--sel); margin-top: 0.25rem; }
+.power__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 1.4rem 2.5rem; padding: 1.3rem 0; }
+.power__label { font-family: var(--pixel); color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+.power__stats { margin: 0; display: grid; gap: 0.5rem; font-size: 0.9rem; }
+.power__stats div { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.6rem; }
+.power__stats dt { font-family: var(--pixel); color: var(--ink); }
+.power__stats dd { margin: 0; color: var(--ink-2); }
+.power__skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+.power__skills li { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0.6rem; font-size: 0.88rem; }
+.power__skills b { font-family: var(--pixel); font-weight: 400; font-size: 1rem; color: var(--sel); }
+.power__skills span { color: var(--ink-2); }
+.power__desc { font-family: var(--pixel); font-size: 1.15rem; line-height: 1.45; padding-top: 1rem; border-top: 2px solid var(--line-dim); }
+@media (max-width: 760px) {
+  .power__body { grid-template-columns: 1fr; }
+  .power__skills li, .power__stats div { grid-template-columns: 1fr; gap: 0; }
+}

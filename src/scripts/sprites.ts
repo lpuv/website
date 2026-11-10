@@ -9,83 +9,111 @@
 
 export type Sprite = HTMLCanvasElement | HTMLImageElement;
 
+function hash(x: number, y: number) {
+  let h = (x * 374761393 + y * 668265263) ^ 0x5bd1e995;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
 /**
- * The red tree: chunky horizontal brush strokes of red over magenta, a dark
- * twisted trunk, roots spreading onto the floor.
+ * The red tree. The crown is a pile of wide, rounded leaf clumps: pink-red on
+ * top, magenta in the shadow (left and underneath). The trunk is thick enough
+ * to hide someone.
  */
 export function drawTree() {
-  const W = 136;
-  const H = 112;
-  const bx = 63;
-  const by = 107;
+  const W = 144;
+  const H = 128;
+  const bx = 70;
+  const by = 123;
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const g = c.getContext('2d')!;
-  const rect = (x: number, y: number, w: number, h: number, col: string) => {
+  const px = (x: number, y: number, col: string) => {
     g.fillStyle = col;
-    g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    g.fillRect(x, y, 1, 1);
   };
 
-  // Trunk, branches, roots.
-  const BARK = '#2a1230';
-  const BARK_HI = '#4a2350';
-  const line = (x0: number, y0: number, x1: number, y1: number, w: number) => {
+  // Trunk: thick, slightly leaning, flared roots.
+  const BARK = ['#1f0c24', '#34173a', '#4d2453', '#6a3570'];
+  const trunk = new Map<string, number>();
+  const put = (x: number, y: number, v: number) => trunk.set(`${x},${y}`, v);
+  for (let y = 62; y <= by; y++) {
+    const t = (y - 62) / (by - 62);
+    let half = 6 + t * 2.5;
+    if (y > by - 7) half += (y - (by - 7)) * 1.6;
+    const lean = Math.round(Math.sin(t * 2.4) * 2);
+    for (let x = Math.round(bx - half + lean); x <= Math.round(bx + half + lean); x++) put(x, y, 0);
+  }
+  const limb = (x0: number, y0: number, x1: number, y1: number, w0: number) => {
     const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
     for (let i = 0; i <= n; i++) {
       const t = i / n;
-      const x = x0 + (x1 - x0) * t;
-      const y = y0 + (y1 - y0) * t;
-      rect(x - w / 2, y, w, 1, BARK);
+      const w = Math.max(1, Math.round(w0 * (1 - t * 0.6)));
+      const x = Math.round(x0 + (x1 - x0) * t);
+      const y = Math.round(y0 + (y1 - y0) * t);
+      for (let k = -Math.floor(w / 2); k < Math.ceil(w / 2); k++) put(x + k, y, 0);
     }
   };
-  for (let y = 66; y <= by; y++) {
-    const t = (y - 66) / (by - 66);
-    const w = 4 + t * 2 + (y > by - 4 ? (y - (by - 4)) * 2 : 0);
-    const sway = Math.round(Math.sin(y * 0.18) * 1.2);
-    rect(bx - w / 2 + sway, y, w, 1, BARK);
-    rect(bx - w / 2 + sway, y, 1, 1, BARK_HI);
+  limb(bx - 3, 74, bx - 26, 52, 6);
+  limb(bx + 3, 70, bx + 28, 50, 6);
+  limb(bx, 64, bx + 2, 40, 5);
+  limb(bx - 6, by - 2, bx - 20, by + 3, 3);
+  limb(bx + 6, by - 2, bx + 22, by + 3, 3);
+  for (const k of trunk.keys()) {
+    const [x, y] = k.split(',').map(Number);
+    const l = !trunk.has(`${x - 1},${y}`);
+    const r = !trunk.has(`${x + 1},${y}`);
+    const l2 = !trunk.has(`${x - 2},${y}`);
+    let v = r ? 0 : l ? 3 : l2 ? 2 : 1;
+    if (v === 1 && hash(x, y >> 2) > 0.8) v = 0; // bark grooves
+    px(x, y, BARK[v]);
   }
-  line(bx, 82, bx - 18, 60, 3);
-  line(bx - 12, 68, bx - 24, 58, 2);
-  line(bx + 1, 78, bx + 22, 56, 3);
-  line(bx + 14, 64, bx + 30, 58, 2);
-  line(bx, 70, bx + 4, 50, 2);
-  line(bx - 3, by - 1, bx - 16, by + 3, 2);
-  line(bx + 3, by - 1, bx + 17, by + 2, 2);
-  line(bx, by, bx - 6, by + 4, 2);
-  line(bx + 10, by + 1, bx + 22, by + 4, 1);
 
-  // Canopy strokes: [x, y, width, tone]. y is the stroke's top; strokes are 10px tall.
-  const TONES: Record<string, [string, string, string]> = {
-    r: ['#ff4a6a', '#f2203f', '#c4123a'], // bright red
-    p: ['#ff5c86', '#ff2e5e', '#d0174f'], // pinkish red
-    m: ['#d43196', '#b5187e', '#861263'], // magenta (shadow side)
-  };
-  const strokes: [number, number, number, string][] = [
-    [40, 0, 30, 'r'], [86, 1, 22, 'r'],
-    [26, 7, 44, 'r'], [62, 7, 58, 'p'],
-    [14, 14, 30, 'm'], [38, 14, 86, 'r'],
-    [6, 21, 34, 'm'], [34, 21, 96, 'p'],
-    [10, 28, 30, 'm'], [36, 28, 94, 'r'],
-    [14, 35, 34, 'm'], [44, 35, 72, 'p'], [110, 36, 20, 'r'],
-    [24, 42, 28, 'm'], [46, 42, 82, 'r'],
-    [34, 49, 30, 'm'], [60, 49, 66, 'r'],
-    [30, 56, 62, 'r'], [92, 56, 26, 'm'],
-    [44, 63, 46, 'p'], [94, 63, 14, 'm'],
-    [54, 70, 30, 'r'],
+  // Crown clumps [cx, cy, rx, ry]; later clumps sit in front.
+  const clumps: [number, number, number, number][] = [
+    [60, 14, 22, 10], [94, 12, 20, 9], [74, 26, 40, 14],
+    [36, 32, 22, 12], [108, 30, 24, 12],
+    [22, 46, 18, 10], [120, 46, 18, 10],
+    [54, 44, 30, 12], [94, 46, 28, 12],
+    [40, 60, 20, 9], [72, 62, 26, 10], [104, 60, 18, 8],
   ];
-  for (const [x, y, w, t] of strokes) {
-    const [hi, mid, lo] = TONES[t];
-    const h = 10;
-    for (let row = 0; row < h; row++) {
-      // Rounded ends: inset the first and last rows.
-      const inset = row === 0 || row === h - 1 ? 2 : row === 1 || row === h - 2 ? 1 : 0;
-      const col = row < 2 ? hi : row === h - 1 ? '#3d0a2c' : row > h - 4 ? lo : mid;
-      rect(x + inset, y + row, w - inset * 2, 1, col);
+  const HI = '#ff6a86';
+  const RED = ['#ff3d63', '#f0234a', '#cf1546'];
+  const MAG = ['#d63a9e', '#b31c82', '#861566'];
+  const EDGE = '#3a0a2e';
+  const owner = (x: number, y: number) => {
+    for (let i = clumps.length - 1; i >= 0; i--) {
+      const [cx, cy, rx, ry] = clumps[i];
+      const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+      if (d <= 1 + (hash(x >> 2, y >> 1) - 0.5) * 0.16) return i;
+    }
+    return -1;
+  };
+  for (let y = 0; y < 76; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = owner(x, y);
+      if (i < 0) continue;
+      const [cx, cy, rx, ry] = clumps[i];
+      const outside = owner(x - 1, y) < 0 || owner(x + 1, y) < 0 || owner(x, y - 1) < 0 || owner(x, y + 1) < 0;
+      if (outside) {
+        px(x, y, EDGE);
+        continue;
+      }
+      const below = owner(x, y + 1);
+      const seam = below !== i && below < i; // this clump's lower lip over one behind it
+      // Shadow: the left flank and the underside of the crown.
+      const shadow = cx < 42 || (cy > 56 && cx < 90) || y > 66;
+      const pal = shadow ? MAG : RED;
+      const local = (y - (cy - ry)) / (2 * ry);
+      const v = local * 0.65 + (y / 76) * 0.35;
+      let col = v < 0.3 ? pal[0] : v < 0.66 ? pal[1] : pal[2];
+      if (seam) col = pal[2];
+      if (!shadow && local < 0.2 && y < 40 && Math.abs(x - (cx - rx * 0.2)) < rx * 0.45) col = HI;
+      px(x, y, col);
     }
   }
-  return { canvas: c as Sprite, baseX: bx, baseY: by, crownBottom: 80 };
+  return { canvas: c as Sprite, baseX: bx, baseY: by, crownBottom: 76 };
 }
 
 /** Placeholder player: a small cat (craftcat). Two frames. */

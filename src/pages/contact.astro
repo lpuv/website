@@ -55,6 +55,7 @@ const channels = [
 
   <div class="wrap">
     <form class="naming box" id="compose" action="mailto:luna@craftcat.dev" method="post" enctype="text/plain">
+      <p class="naming__title">Name the person writing.</p>
       <label class="field">
         <span>Name</span>
         <input name="name" type="text" autocomplete="name" required maxlength="80" placeholder="..." />
@@ -69,7 +70,7 @@ const channels = [
       </label>
       <div class="naming__foot">
         <button class="btn btn--primary" type="submit"><span class="soul" aria-hidden="true"></span>Send</button>
-        <p class="naming__status" id="compose-status" aria-live="polite">This opens your mail client. No backend, no tracking.</p>
+        <p class="naming__status" id="compose-status" aria-live="polite">(This opens your mail client. No backend, no tracking.)</p>
       </div>
     </form>
 
@@ -111,7 +112,7 @@ const channels = [
       link.click();
 
       if (status) {
-        status.textContent = 'opening your mail client. if nothing happens, email luna@craftcat.dev.';
+        status.textContent = '(Your mail client should open. If nothing happens, write to luna@craftcat.dev.)';
       }
     });
   </script>

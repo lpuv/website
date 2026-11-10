@@ -7,6 +7,13 @@ const systems = (await getCollection('systems')).sort((a, b) => a.data.order - b
 const featured = systems.filter((s) => s.data.featured);
 const work = featured.length ? featured : systems.slice(0, 6);
 
+const skills = [
+  { name: 'Infrastructure', value: 'Linux, NixOS, Proxmox, Kubernetes, Ansible, OpenShift, Docker' },
+  { name: 'Security', value: 'Pentesting, CTFs, vulnerability research, least-privilege design' },
+  { name: 'Embedded', value: 'TMS570, FreeRTOS, JTAG, oscilloscopes, MATLAB/Simulink' },
+  { name: 'Languages', value: 'C, C++, Python, JavaScript, Java, Swift' },
+];
+
 const posts = (await getCollection('log'))
   .filter((p) => !p.data.draft)
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
@@ -57,6 +64,44 @@ const fmt = (d: Date) =>
           <a class="btn" href="#work">See the work</a>
           <a class="btn" href="/resume/">Resume</a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <h2 class="section__title" id="about-title"><span class="soul soul--static" aria-hidden="true"></span>About</h2>
+      <div class="power reveal">
+        <div class="power__head">
+          <canvas class="power__portrait" width="12" height="12" data-portrait aria-hidden="true"></canvas>
+          <div>
+            <p class="power__name">Luna</p>
+            <p class="power__class">Computer engineer · McGill '29</p>
+          </div>
+        </div>
+        <div class="power__body">
+          <div>
+            <p class="power__label">Stats</p>
+            <dl class="power__stats">
+              <div><dt>Now</dt><dd>C&amp;DH lead, McGill Orbital CubeSat</dd></div>
+              <div><dt>Since 2021</dt><dd>Packager &amp; infra volunteer, Fedora</dd></div>
+              <div><dt>Based</dt><dd>Montréal (from Los Angeles)</dd></div>
+              <div><dt>Seeking</dt><dd>Internships: infrastructure, security, embedded</dd></div>
+            </dl>
+          </div>
+          <div>
+            <p class="power__label">Skills</p>
+            <ul class="power__skills">
+              {skills.map((k) => (
+                <li><b>{k.name}</b><span>{k.value}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <p class="power__desc">
+          Builds systems that have to stay up, and takes old ones apart to see how they fall over.
+          Finishes the silly projects too.
+        </p>
       </div>
     </div>
   </section>
@@ -155,6 +200,11 @@ const fmt = (d: Date) =>
   import { play } from '../scripts/sfx';
 
   initRoom();
+
+  // Portrait in the About box: the same cat as the room.
+  import { drawCat } from '../scripts/sprites';
+  const portrait = document.querySelector<HTMLCanvasElement>('[data-portrait]');
+  portrait?.getContext('2d')?.drawImage(drawCat()[0], 0, 0);
 
   // Work menu: hover or focus selects, arrows move.
   const items = [...document.querySelectorAll<HTMLAnchorElement>('[data-menu-item]')];
