@@ -53,7 +53,7 @@ export function initRoom() {
   const onFloor = (x: number, y: number) =>
     FLOOR_RECTS.some(([rx, ry, rw, rh], i) =>
       x >= T.x + rx + 3 && x <= T.x + rx + rw - 3 && y >= T.y + ry + (i === 0 ? 4 : 0) && y <= T.y + ry + rh);
-  const trunk = (x: number, y: number) => Math.abs(x - T.x) < 11 && y > T.y - 6 && y < T.y + 3;
+  const trunk = (x: number, y: number) => Math.abs(x - T.x) < 9 && y > T.y - 6 && y < T.y + 3;
 
   // --- layout -------------------------------------------------------------
   const resize = () => {
@@ -409,7 +409,7 @@ export function initRoom() {
     for (let row = 0; row < s.height; row++) {
       const k = row < tree.crownBottom ? 1 - row / tree.crownBottom : 0;
       // Strokes move as whole bands, like the game's chunky leaves.
-      const band = Math.floor(row / 10);
+      const band = Math.floor(row / 8);
       const off = reduce ? 0 : Math.round(Math.sin(time * 0.0008 + band * 0.9) * 1.2 * k);
       g.drawImage(s, 0, row, s.width, 1, ox + off, oy + row, s.width, 1);
     }
