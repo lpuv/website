@@ -491,20 +491,51 @@ export function initWorkbench() {
       R(70, 17, 4, 4, '#e8e4d0'); // moon
       R(71, 17, 3, 1, sky.sky);
     }
-    // Horizon: the city, then a hill with the tree on it.
+    // Horizon: the city.
     const city = [3, 5, 2, 6, 4, 7, 3, 5, 8, 4, 2, 5, 3, 6, 2];
     city.forEach((h, i) => R(23 + i * 4, 59 - h, 4, h, '#0b0914'));
-    R(62, 54, 21, 5, '#0b0914');
-    R(66, 52, 14, 2, '#0b0914');
-    // The tree. Small, but there.
-    R(73, 49, 1, 3, '#1a1020');
-    R(72, 46, 4, 3, '#9e1434');
-    R(72, 45, 3, 1, '#c4163c');
-    R(71, 47, 1, 1, '#7d1061');
+    // Far away: the red tree, on its little purple plateau. A miniature of the one in the secret room.
+    drawFarTree(60, 37, t);
     // Mullions and sill.
     R(52, 13, 2, 46, C.frame);
     R(23, 35, 60, 2, C.frame);
     R(18, 64, 70, 3, C.frameHi);
+  }
+
+  /** The tree as a tiny sprite. h = highlight, r = red, l = red shadow, m = magenta, d = dark magenta, t = trunk, p = plateau. */
+  const FAR_TREE = [
+    '...........hhhh.......',
+    '.......hhhhrrrrhh...r.',
+    '....mmmrrrrrrrrrrr....',
+    'r..mmmmrrrrrrrrrrrr...',
+    '..mmmmrrrrrrrrrrrrmm..',
+    '...dmmmmrrrrrrrrrmmd..',
+    '....ddmmmrrrrrlrrdd...',
+    '.......dmrrrllll......',
+    '.........llt.tt.......',
+    '..........tttt........',
+    '..........tt..........',
+    '.........tt...........',
+    '.........tt...........',
+    '........ttt...........',
+    '.......t.tt.t.........',
+    '...pppppppppppppppp...',
+    '...pppppppppppppppp...',
+    '.....pppppppppppp.....',
+  ];
+  const FAR_COL: Record<string, string> = {
+    h: '#ff3355', r: '#ec1f45', l: '#b3123a', m: '#b3208a', d: '#740f5c', t: '#1b1838', p: '#5f3166',
+  };
+  function drawFarTree(x: number, y: number, t: number) {
+    // The crown sways a pixel, like the real one.
+    const sway = reduce ? 0 : Math.round(Math.sin(t * 0.0008) * 0.6);
+    FAR_TREE.forEach((row, ry) => {
+      const off = ry < 8 ? sway : 0;
+      for (let rx = 0; rx < row.length; rx++) {
+        const c = FAR_COL[row[rx]];
+        if (c) R(x + rx + off, y + ry, 1, 1, c);
+      }
+    });
   }
 
   function catFace(x: number, y: number) {
