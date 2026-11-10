@@ -165,7 +165,7 @@ export function drawCat() {
 }
 
 /** Loads sprite overrides from /sprites/manifest.json, if any. */
-export async function loadOverrides(): Promise<Partial<Record<'tree' | 'player', HTMLImageElement>>> {
+export async function loadOverrides(): Promise<Partial<Record<'tree' | 'player' | 'friend', HTMLImageElement>>> {
   try {
     const res = await fetch('/sprites/manifest.json');
     if (!res.ok) return {};

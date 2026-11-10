@@ -10,6 +10,18 @@ import { play } from './sfx';
 export type Choice = { id: string; label: string };
 export type Line = string | { text: string; choices?: Choice[]; voice?: number };
 
+/** Voices at or below this are Gaster: silent, slow, Wingdings. */
+export const GASTER = 0.5;
+
+/** Letters to the Unicode symbols Wingdings draws for them. VS15 asks for text presentation. */
+const WD: Record<string, string> = {
+  A: '✌', B: '👌', C: '👍', D: '👎', E: '☜', F: '☞', G: '☝', H: '☟', I: '✋', J: '☺', K: '😐', L: '☹',
+  M: '💣', N: '☠', O: '⚐', P: '🏱', Q: '✈', R: '☼', S: '💧', T: '❄', U: '🕆', V: '✞', W: '🕈', X: '✠',
+  Y: '✡', Z: '☪', '.': '📪', ',': '📫', '?': '✍', '!': '✏', "'": '♉', '-': '📫',
+};
+const wingdings = (s: string) =>
+  [...s.toUpperCase()].map((c) => (WD[c] ? WD[c] + '\uFE0E' : c)).join('');
+
 const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export class Dialogue {
@@ -95,26 +107,42 @@ export class Dialogue {
     this.skip = false;
     const star = text.startsWith('* ');
     if (star) text = text.slice(2);
+    const gaster = voice <= GASTER;
     this.textEl.classList.toggle('has-star', star);
-    this.textEl.classList.toggle('is-man', voice < 1);
-    this.textEl.textContent = '';
+    this.textEl.classList.toggle('is-man', voice < 1 && !gaster);
+    this.textEl.classList.toggle('is-gaster', gaster);
     this.liveEl.textContent = text;
     this.nextEl.hidden = true;
+
+    // Gaster: Wingdings underneath, the translation laid over it.
+    let glyphs: HTMLElement | null = null;
+    let trans: HTMLElement | null = this.textEl;
+    this.textEl.textContent = '';
+    if (gaster) {
+      glyphs = document.createElement('span');
+      glyphs.className = 'dlg__glyphs';
+      trans = document.createElement('span');
+      trans.className = 'dlg__trans';
+      this.textEl.append(glyphs, trans);
+    }
+    const show = (s: string) => {
+      trans!.textContent = s;
+      if (glyphs) glyphs.textContent = wingdings(s);
+    };
+
     if (reduce()) {
-      this.textEl.textContent = text;
+      show(text);
     } else {
-      let out = '';
       for (let i = 0; i < text.length; i++) {
         if (this.skip) {
-          out = text;
-          this.textEl.textContent = out;
+          show(text);
           break;
         }
         const ch = text[i];
-        out += ch;
-        this.textEl.textContent = out;
-        if (ch !== ' ' && i % 2 === 0) play('blip', voice);
-        const wait = /[.,!?]/.test(ch) && text[i + 1] === ' ' ? 140 : ch === '…' ? 220 : 26;
+        show(text.slice(0, i + 1));
+        if (!gaster && ch !== ' ' && i % 2 === 0) play('blip', voice);
+        const pause = /[.,!?]/.test(ch) && text[i + 1] === ' ';
+        const wait = gaster ? (pause ? 320 : 55) : pause ? 140 : ch === '…' ? 220 : 26;
         await new Promise((r) => setTimeout(r, wait));
       }
     }

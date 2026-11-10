@@ -64,6 +64,18 @@ Narration is in parentheses, starting with an asterisk: "(Well, there is a man h
 Dialogue engine: `src/scripts/dialogue.ts`. Lines starting with `* ` get a hanging asterisk; lines
 with a voice below 1 are the man's.
 
+## The secret (spoilers)
+
+FRIEND stands in the dark to the right of the path, drawn at about 6% opacity and only a little
+clearer up close. The dark around it has an invisible floor. Walk to FRIEND and the room drops into
+an empty void where Gaster speaks, in the style of the Chapter 1 intro.
+
+- His lines type out in Wingdings (letters mapped to the Unicode symbols Wingdings draws, rendered
+  as flat white silhouettes so emoji don't show in colour), with the English translation laid over
+  them. Screen readers get the English. He is silent and slow; the music stops.
+- He ends with "NOW. YOU MUST CREATE A VESSEL." Create goes to the contact form; Refuse returns you
+  to the tree, and FRIEND is gone until reload.
+
 ## Inner pages
 
 - `/systems/` work records with status filters; `/systems/[slug]/` record with a details box.
@@ -78,7 +90,7 @@ Placeholder art is drawn in code (`src/scripts/sprites.ts`); the tree follows th
 flat rounded leaf strokes leaning right, magenta in the shadows, a slanted navy trunk thick enough to
 hide behind. Real files override it:
 
-- `public/sprites/manifest.json` → `tree`, `player`
+- `public/sprites/manifest.json` → `tree`, `player`, `friend` (FRIEND appears only if this is set)
 - `public/sounds/manifest.json` → `music` (looped), plus optional effects (`blip`, `move`, `select`,
   `item`, `save`)
 

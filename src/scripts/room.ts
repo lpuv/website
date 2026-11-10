@@ -2,7 +2,7 @@
  * The room with the tree. A purple plateau in the dark, a path leading down,
  * and a man you can't quite see.
  */
-import { Dialogue, inventory, type Line } from './dialogue';
+import { Dialogue, GASTER, inventory, type Line } from './dialogue';
 import { music, play } from './sfx';
 import { drawCat, drawTree, loadOverrides, type Sprite } from './sprites';
 
@@ -33,6 +33,9 @@ export function initRoom() {
   let treeSprite: Sprite = tree.canvas;
   const cat = drawCat();
   let playerImg: Sprite | null = null;
+  let friendImg: Sprite | null = null;
+  let friendGone = false;
+  let scene: 'room' | 'void' = 'room';
 
   const T = { x: 160, y: 136 }; // trunk base
   const P = { x: 154, y: H - 10, dir: 1, moving: false, step: 0 };
@@ -53,6 +56,11 @@ export function initRoom() {
   const onFloor = (x: number, y: number) =>
     FLOOR_RECTS.some(([rx, ry, rw, rh], i) =>
       x >= T.x + rx + 3 && x <= T.x + rx + rw - 3 && y >= T.y + ry + (i === 0 ? 4 : 0) && y <= T.y + ry + rh);
+  // FRIEND stands in the dark to the right of the path. The dark there has a floor you can't see.
+  const F = () => ({ x: T.x + 58, y: T.y + 66 });
+  const friendHere = () => !!friendImg && !friendGone;
+  const secretFloor = (x: number, y: number) =>
+    friendHere() && x >= T.x + 14 && x <= T.x + 72 && y >= T.y + 42 && y <= T.y + 70;
   const trunk = (x: number, y: number) => Math.abs(x - T.x) < 9 && y > T.y - 6 && y < T.y + 3;
 
   // --- layout -------------------------------------------------------------
@@ -81,6 +89,7 @@ export function initRoom() {
       tree = { ...tree, baseX: o.tree.width / 2, baseY: o.tree.height, crownBottom: o.tree.height * 0.75 };
     }
     if (o.player) playerImg = o.player;
+    if (o.friend) friendImg = o.friend;
   });
 
   // --- the man ------------------------------------------------------------
@@ -106,7 +115,7 @@ export function initRoom() {
   };
 
   async function talk() {
-    if (dlg.open) return;
+    if (dlg.open || scene !== 'room') return;
     keys.clear();
     target = null;
     box.classList.toggle('dlg--top', P.y > T.y + 44);
@@ -248,6 +257,70 @@ export function initRoom() {
     } else dlg.close();
   }
 
+  /** The secret: an empty dark, and a voice. */
+  async function enterVoid() {
+    if (scene !== 'room') return;
+    scene = 'void';
+    keys.clear();
+    target = null;
+    music(false);
+    stage.classList.add('is-void');
+    if (hint) hint.textContent = '';
+    box.classList.remove('dlg--top');
+    box.classList.add('dlg--void');
+    P.x = W / 2;
+    P.y = H * 0.55;
+    P.moving = false;
+    await new Promise((r) => setTimeout(r, reduce ? 0 : 1400));
+
+    const voice = (text: string) => ({ text, voice: GASTER - 0.1 });
+    const pick = await dlg.say(
+      [
+        voice('ARE YOU THERE?'),
+        voice('ARE WE CONNECTED?'),
+        voice('EXCELLENT. TRULY EXCELLENT.'),
+        voice('YOU WALKED WHERE THERE WAS NO FLOOR. VERY FEW DO.'),
+        voice('THE MAN BEHIND THE TREE FORGETS. I DO NOT.'),
+        voice('A CLUSTER, TAKEN APART BY ITS OWN BUILDER.'),
+        voice('A HOMELAB, REBUILT FROM A SINGLE FILE.'),
+        voice('OLD SOFTWARE, OPENED TO SEE HOW IT BREAKS.'),
+        voice('VERY, VERY INTERESTING.'),
+        {
+          ...voice('NOW. YOU MUST CREATE A VESSEL.'),
+          choices: [
+            { id: 'vessel', label: 'Create' },
+            { id: 'refuse', label: 'Refuse' },
+          ],
+        },
+      ],
+      { keepOpen: true },
+    );
+
+    if (pick === 'vessel') {
+      await dlg.say([voice('THEN WRITE TO HER. SHE WILL READ IT.')], { keepOpen: true });
+      location.href = '/contact/';
+      return;
+    }
+    if (pick === 'refuse') {
+      await dlg.say(
+        [voice('NO ONE CAN CHOOSE WHO THEY ARE IN THIS WORLD.'), voice('BUT YOU MAY CHOOSE TO LEAVE.')],
+        { keepOpen: true },
+      );
+    }
+    dlg.close();
+
+    // Back to the tree. FRIEND is gone until next time.
+    friendGone = true;
+    scene = 'room';
+    stage.classList.remove('is-void');
+    box.classList.remove('dlg--void');
+    P.x = T.x - 6;
+    P.y = H - 12;
+    music(visible && !document.hidden);
+    await new Promise((r) => setTimeout(r, 300));
+    void dlg.say(['* (You are back by the tree.)', '* (Well, there is not a FRIEND here.)']);
+  }
+
   async function peek() {
     peeked = true;
     keys.clear();
@@ -299,7 +372,7 @@ export function initRoom() {
     if (m) keys.delete(m);
   });
   window.addEventListener('blur', () => keys.clear());
-  document.addEventListener('visibilitychange', () => music(visible && !document.hidden));
+  document.addEventListener('visibilitychange', () => music(visible && !document.hidden && scene === 'room'));
 
   const toRoom = (e: PointerEvent) => {
     const r = view.getBoundingClientRect();
@@ -319,13 +392,14 @@ export function initRoom() {
   new IntersectionObserver(([entry]) => {
     visible = entry.intersectionRatio > 0.35;
     if (!visible) keys.clear();
-    music(visible && !document.hidden);
+    music(visible && !document.hidden && scene === 'room');
   }, { threshold: [0, 0.35, 1] }).observe(stage);
 
   // --- simulation ---------------------------------------------------------
-  const walkable = (x: number, y: number) => (onFloor(x, y) || y > H - 1) && !trunk(x, y);
+  const walkable = (x: number, y: number) => (onFloor(x, y) || secretFloor(x, y) || y > H - 1) && !trunk(x, y);
 
   function update(dt: number) {
+    if (scene === 'void') return;
     let dx = 0;
     let dy = 0;
     if (!dlg.open) {
@@ -359,6 +433,15 @@ export function initRoom() {
 
     // Behind the tree, once per visit.
     if (!peeked && !gone && !dlg.open && P.y < T.y - 26 && Math.abs(P.x - T.x) < 18) void peek();
+
+    // Reaching FRIEND.
+    if (friendHere() && !dlg.open) {
+      const f = F();
+      if (Math.hypot(P.x - f.x, P.y - (f.y - 2)) < 10) {
+        void enterVoid();
+        return;
+      }
+    }
 
     // Down the path: to the work.
     if (P.y > H + 6) {
@@ -431,10 +514,32 @@ export function initRoom() {
     g.restore();
   }
 
+  function drawFriend(time: number) {
+    if (!friendHere()) return;
+    const f = F();
+    const w = 25;
+    const h = 23;
+    // Barely there. A little clearer the closer you get.
+    const d = Math.hypot(P.x - f.x, P.y - f.y);
+    const near = Math.max(0, 1 - d / 45);
+    const breathe = reduce ? 0 : Math.sin(time * 0.0012) * 0.015;
+    g.globalAlpha = 0.06 + breathe + near * near * 0.3;
+    g.imageSmoothingEnabled = false;
+    g.drawImage(friendImg!, Math.round(f.x - w / 2), Math.round(f.y - h), w, h);
+    g.globalAlpha = 1;
+  }
+
   function render(time: number) {
     g.fillStyle = '#000';
     g.fillRect(0, 0, W, H);
+    if (scene === 'void') {
+      drawPlayer();
+      out.imageSmoothingEnabled = false;
+      out.drawImage(buf, 0, 0, view.width, view.height);
+      return;
+    }
     drawFloor();
+    drawFriend(time);
     for (const l of leaves) if (l.y >= l.floor) {
       g.globalAlpha = Math.min(1, l.life / 120);
       g.fillStyle = l.col;

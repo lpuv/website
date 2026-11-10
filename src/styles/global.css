@@ -561,3 +561,25 @@ a:hover b > .soul, a:focus-visible b > .soul { visibility: visible; }
 .room__music { display: none; width: 100%; font-family: var(--pixel); color: var(--dim); font-size: 0.9rem; }
 .room__music cite { font-style: normal; color: var(--ink-2); }
 [data-audio='on'] .room__music { display: block; }
+
+/* The void: no box, just the voice. */
+.stage.is-void::after { background: radial-gradient(ellipse at 50% 55%, transparent 20%, #000 70%); }
+.dlg--void { border-color: transparent; background: transparent; }
+.dlg__text.is-gaster { display: grid; letter-spacing: 0.05em; }
+.dlg__glyphs, .dlg__trans { grid-area: 1 / 1; }
+/* Wingdings underneath: every symbol (emoji included) drawn as a flat silhouette. */
+.dlg__glyphs {
+  color: transparent;
+  text-shadow: 0 0 0 rgba(255, 255, 255, 0.32);
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'Apple Symbols', system-ui, sans-serif;
+  font-size: 1.25em;
+  letter-spacing: 0.18em;
+  line-height: 1.55;
+}
+/* The translation laid over it, outlined so it stays readable. */
+.dlg__trans {
+  align-self: center;
+  font-size: 0.85em;
+  color: #fff;
+  text-shadow: 0 0 3px #000, 0 0 2px #000, 0 0 1px #000;
+}
