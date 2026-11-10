@@ -1,183 +1,243 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import SavePoint from '../components/SavePoint.astro';
 
-const allSystems = (await getCollection('systems')).sort((a, b) => a.data.order - b.data.order);
+const systems = (await getCollection('systems')).sort((a, b) => a.data.order - b.data.order);
+const featured = systems.filter((s) => s.data.featured);
+const work = featured.length ? featured : systems.slice(0, 6);
 
-/** The map shows the machines that actually relate to each other. */
-const bySlug = Object.fromEntries(allSystems.map((s) => [s.id, s]));
-const map = [
-  { id: 'core', label: 'pinwheel', kind: 'the machine', r: 9, w: 2.6,
-    desc: 'One Proxmox host. Twelve NixOS containers on top of it. Everything else here runs on this.' },
-  { id: 'nix-lab', r: 6, w: 1 },
-  { id: 'rocket-cdh', r: 6, w: 1 },
-  { id: 'fedora', r: 6, w: 1 },
-  { id: 'cve-2012-2982', r: 6, w: 1 },
-  { id: 'evil-tetris', r: 6, w: 1 },
-].map((n) => {
-  if (n.id === 'core') return n;
-  const entry = bySlug[n.id];
-  return {
-    ...n,
-    label: entry?.data.title ?? n.id,
-    kind: entry?.data.designation ?? 'record',
-    desc: entry?.data.summary ?? '',
-  };
-});
+const posts = (await getCollection('log'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+const fmt = (d: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'UTC', year: 'numeric', month: 'short', day: '2-digit' }).format(d);
 
-const links = [
-  ['core', 'nix-lab'], ['core', 'rocket-cdh'], ['core', 'fedora'],
-  ['core', 'cve-2012-2982'], ['core', 'evil-tetris'],
-  ['nix-lab', 'fedora'], ['nix-lab', 'cve-2012-2982'],
-  ['rocket-cdh', 'cve-2012-2982'], ['evil-tetris', 'cve-2012-2982'],
+const skills = [
+  { label: 'Languages', value: 'C, C++, Python, JavaScript, Java, Swift' },
+  { label: 'Infrastructure', value: 'Linux, NixOS, Proxmox, Kubernetes, Ansible, OpenShift, Docker' },
+  { label: 'Embedded', value: 'TMS570, FreeRTOS, JTAG, oscilloscopes, MATLAB/Simulink' },
+  { label: 'Security', value: 'Pentesting, CTFs, vulnerability research, least-privilege design' },
 ];
-
-const featured = allSystems.filter((s) => s.data.featured);
-const list = (featured.length ? featured : allSystems).slice(0, 6);
 ---
 
-<Base title="Luna Puvilland — craftcat.dev">
-  <section class="hero">
-    <div class="wrap hero__wrap">
-      <p class="hero__kicker">
-        <span class="dot" aria-hidden="true"></span>
-        Open to internships · Montréal
+<Base title="Luna Puvilland · craftcat.dev">
+  <section class="room" aria-labelledby="room-title">
+    <div class="wrap room__head">
+      <p class="kicker">Computer engineering · McGill · Montréal</p>
+      <h1 class="room__title" id="room-title">Luna Puvilland</h1>
+      <p class="room__lede">
+        I build systems that have to keep running: satellite firmware, a homelab rebuilt from one
+        flake, packages in Fedora. And I take old software apart to see how it breaks.
       </p>
-
-      <h1 class="hero__name">I build systems that have to <em>keep running.</em></h1>
-
-      <p class="hero__lede">
-        Satellite firmware, a homelab rebuilt from one flake, Fedora packages in
-        official repos. And I take old software apart to see how it breaks.
-      </p>
-
-      <ul class="actions hero__actions">
-        <li><a class="btn btn--primary" href="#work">See the work <span class="btn__arrow" aria-hidden="true">→</span></a></li>
-        <li><a class="btn" href="/resume">Resume</a></li>
-        <li><a class="btn" href="/contact">Get in touch</a></li>
-      </ul>
-
-      <p class="hero__more">Grab a machine and pull</p>
     </div>
 
-    <div class="hero__stage">
-
-
-      <canvas
-        id="map"
-        class="hero__canvas"
+    <div class="wrap">
+      <div
+        class="stage"
+        data-stage
         tabindex="0"
         role="application"
-        aria-label="A live map of Luna's projects. Drag any machine to move it. Arrow keys cycle through machines."
-        aria-describedby="map-help"
-        data-nodes={JSON.stringify(map)}
-        data-links={JSON.stringify(links)}></canvas>
+        aria-label="A dark room with a red tree. Someone is standing behind it. Use WASD or arrow keys to walk, Z or Enter to talk. Everything here is also written out below."
+      >
+        <canvas aria-hidden="true"></canvas>
+        <a class="exit exit--l" href="/systems/" aria-label="Leave left, to the work">‹ work</a>
+        <a class="exit exit--r" href="/log/" aria-label="Leave right, to the notes">notes ›</a>
+        <p class="stage__hint" data-stage-hint aria-hidden="true"></p>
 
-      <div class="hero__hint">
-        <div class="hero__hint-body" aria-live="polite">
-          <span class="node-tip__kind" id="ro-kind">the machine</span>
-          <span class="node-tip__label" id="ro-label">pinwheel</span>
-          <span class="node-tip__desc" id="ro-desc">One Proxmox host. Twelve NixOS containers on top of it. Everything else here runs on this.</span>
+        <div class="dlg box" data-dlg hidden>
+          <p class="dlg__text" data-dlg-text aria-hidden="true"></p>
+          <p class="sr-only" data-dlg-live aria-live="polite"></p>
+          <div class="dlg__choices" data-dlg-choices></div>
+          <span class="dlg__next" data-dlg-next hidden aria-hidden="true">▼</span>
         </div>
-        <span class="node-tip__go">drag a machine · arrow keys to cycle</span>
       </div>
 
-      <p id="map-help" class="sr-only">
-        This is a map of the machines Luna runs. pinwheel is the Proxmox host at the centre;
-        the projects connect to it and to each other. Every project is also listed below the map.
-      </p>
-      <ul class="sr-only">
-        {map.filter((n) => n.id !== 'core').map((n) => (
-          <li>{n.label} — {n.kind}: {n.desc}</li>
+      <div class="room__bar">
+        <p class="room__controls" aria-hidden="true">
+          <kbd>WASD</kbd> walk · <kbd>Z</kbd> talk · <kbd>X</kbd> skip · or click around
+        </p>
+        <div class="actions">
+          <button class="btn btn--primary" type="button" data-talk>
+            <span class="soul" aria-hidden="true"></span>Talk to the tree
+          </button>
+          <a class="btn" href="#work">See the work</a>
+          <a class="btn" href="/resume/">Resume</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="party" aria-labelledby="party-title">
+    <div class="wrap">
+      <h2 class="section__title" id="party-title"><span class="soul soul--static" aria-hidden="true"></span>Check</h2>
+
+      <div class="party box reveal">
+        <div class="party__id">
+          <p class="party__name">LUNA</p>
+          <p class="party__class">Computer Engineer · Class of 2029</p>
+          <p class="party__check">
+            <span class="star" aria-hidden="true">*</span>LUNA · Builds systems that stay up. Takes old ones apart to see how they fall over.
+          </p>
+          <ul class="party__now">
+            <li><b>Now</b> C&amp;DH lead, McGill Orbital CubeSat</li>
+            <li><b>Since 2021</b> Packager &amp; infra volunteer, Fedora</li>
+            <li><b>Looking for</b> Internships in infrastructure, security, embedded</li>
+          </ul>
+        </div>
+        <dl class="party__stats">
+          {skills.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <div class="section__head">
+        <h2 class="section__title" id="work-title"><span class="soul soul--static" aria-hidden="true"></span>Work</h2>
+        <a class="section__more" href="/systems/">All {systems.length} records ›</a>
+      </div>
+
+      <div class="menu box reveal" data-menu>
+        <ul class="menu__list" role="list">
+          {work.map((entry, i) => (
+            <li>
+              <a
+                class="menu__item"
+                href={`/systems/${entry.id}/`}
+                data-menu-item={i}
+                aria-describedby={`work-${entry.id}`}
+              >
+                <span class="soul" aria-hidden="true"></span>
+                <span class="menu__name">{entry.data.title}</span>
+                <span class="menu__kind">{entry.data.designation}</span>
+              </a>
+              <p class="menu__inline">{entry.data.summary}</p>
+            </li>
+          ))}
+        </ul>
+        <div class="menu__detail">
+          {work.map((entry, i) => (
+            <div class="detail" id={`work-${entry.id}`} data-menu-panel={i} hidden={i !== 0}>
+              <p class="detail__kind">{entry.data.designation} · {entry.data.status}</p>
+              <p class="detail__title">{entry.data.title}</p>
+              <p class="detail__desc"><span class="star" aria-hidden="true">*</span>{entry.data.summary}</p>
+              <dl class="detail__spec">
+                <div><dt>Role</dt><dd>{entry.data.role}</dd></div>
+                <div><dt>When</dt><dd>{entry.data.period}</dd></div>
+                <div><dt>Stack</dt><dd>{entry.data.stack.join(' · ')}</dd></div>
+              </dl>
+              <a class="detail__go" href={`/systems/${entry.id}/`} tabindex="-1">Read the record ›</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="notes" aria-labelledby="notes-title">
+    <div class="wrap">
+      <div class="section__head">
+        <h2 class="section__title" id="notes-title"><span class="soul soul--static" aria-hidden="true"></span>Notes</h2>
+        <a class="section__more" href="/log/">All notes ›</a>
+      </div>
+      <ul class="signs">
+        {posts.map((p) => (
+          <li class="reveal">
+            <a class="sign box" href={`/log/${p.id}/`}>
+              <span class="sign__date">{fmt(p.data.date)}</span>
+              <span class="sign__title">{p.data.title}</span>
+              <span class="sign__desc">{p.data.summary}</span>
+            </a>
+          </li>
         ))}
       </ul>
     </div>
-
-    <div class="hero__status">
-      <div class="wrap hero__status-inner">
-        <span class="stat" id="stat-hosts">{map.length - 1} projects on the map</span>
-        <span class="stat" id="stat-debt">{map.length - 1} machines</span>
-        <span class="spacer"></span>
-        <span class="stat hide-sm">montréal <b id="clock">--:--:--</b></span>
-        <a class="stat" href="mailto:luna@craftcat.dev">luna@craftcat.dev</a>
-      </div>
-    </div>
   </section>
 
-  <section class="section section--flush" id="work" aria-labelledby="work-title">
-    <div class="wrap">
-      <div class="section__head">
-        <div>
-          <h2 class="section__title" id="work-title">What I've built</h2>
-          <p class="section__sub">Infrastructure, security, and the things I build for fun.</p>
-        </div>
-        <a class="section__note" href="/systems">All {allSystems.length} records →</a>
-      </div>
-
-      <div class="cards">
-        {list.map((entry, i) => (
-          <a class="card reveal" data-delay={Math.min(i, 4)} href={`/systems/${entry.id}/`}>
-            <span class="card__index">{String(i + 1).padStart(2, '0')}</span>
-            <span class="card__title">{entry.data.title}</span>
-            <span class="card__desc">{entry.data.summary}</span>
-            <span class="card__go">{entry.data.status}</span>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="tank" aria-labelledby="tank-title">
-    <div class="wrap">
-      <div class="tank__head">
-        <div>
-          <h2 class="section__title" id="tank-title">The tank</h2>
-          <p class="section__sub">Twelve unpatched hosts on one network. Worms get in and spread the way they actually did. The monitor patches and rebuilds at random.</p>
-        </div>
-        <div class="legend">
-          <span><i class="lg-clean"></i>unpatched</span>
-          <span><i class="lg-inf"></i>infected</span>
-          <span><i class="lg-wip"></i>patched</span>
-          <span><i class="lg-down"></i>crashed</span>
-        </div>
-      </div>
-
-      <div class="tank__stage">
-        <canvas id="tank-canvas" class="tank__canvas" tabindex="0" role="application"
-          aria-label="A simulated network of twelve unpatched hosts. Worms spread between them. Hover a host to see what is on it."></canvas>
-        <div class="tank__readout" aria-live="polite">
-          <span class="node-tip__kind" id="tank-ro-kind">the tank</span>
-          <span class="node-tip__label" id="tank-ro-label">twelve unpatched hosts</span>
-          <span class="node-tip__desc" id="tank-ro-desc">Worms get in and spread. Hover a host to see what is on it.</span>
-        </div>
-        <ul class="maplog" id="tank-log" aria-live="polite"></ul>
-      </div>
-
-      <p class="tank__foot">
-        <span id="tank-state">all clean</span>
-        <span>simulated · none of it is live traffic</span>
+  <section class="section section--save" id="save" aria-labelledby="save-title">
+    <div class="wrap save">
+      <button class="save__star" type="button" data-save aria-label="Use the save point: opens a message to Luna">
+        <SavePoint size={56} />
+      </button>
+      <h2 class="section__title" id="save-title">Say hello</h2>
+      <p class="save__line" data-save-line>
+        (The thought of hearing from you fills Luna with determination.)
       </p>
+      <div class="save__file box">
+        <div class="save__row">
+          <b>LUNA</b><span>Montréal</span><span data-clock>--:--</span>
+        </div>
+        <div class="save__actions">
+          <a class="save__opt" href="mailto:luna@craftcat.dev"><span class="soul" aria-hidden="true"></span>Email</a>
+          <a class="save__opt" href="https://github.com/lpuv"><span class="soul" aria-hidden="true"></span>GitHub</a>
+          <a class="save__opt" href="https://www.linkedin.com/in/luna-puvilland-41252738b"><span class="soul" aria-hidden="true"></span>LinkedIn</a>
+          <a class="save__opt" href="/contact/"><span class="soul" aria-hidden="true"></span>More</a>
+        </div>
+      </div>
+      <p class="save__mail"><a href="mailto:luna@craftcat.dev">luna@craftcat.dev</a></p>
     </div>
   </section>
 </Base>
 
 <script>
-  import { initMap, initTank } from '../scripts/map';
+  import { initRoom } from '../scripts/room';
+  import { play } from '../scripts/sfx';
 
-  initMap();
-  initTank();
+  initRoom();
 
-  const clock = document.getElementById('clock');
+  // Work menu: hover or focus selects, arrows move.
+  const items = [...document.querySelectorAll<HTMLAnchorElement>('[data-menu-item]')];
+  const panels = [...document.querySelectorAll<HTMLElement>('[data-menu-panel]')];
+  let current = 0;
+  const select = (i: number, sound = true) => {
+    if (i === current && items[i].classList.contains('is-sel')) return;
+    current = i;
+    items.forEach((el, j) => el.classList.toggle('is-sel', j === i));
+    panels.forEach((el, j) => (el.hidden = j !== i));
+    if (sound) play('move');
+  };
+  items.forEach((el, i) => {
+    el.addEventListener('pointerenter', () => select(i));
+    el.addEventListener('focus', () => select(i));
+    el.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      items[(i + d + items.length) % items.length].focus();
+    });
+  });
+  if (items.length) select(0, false);
+
+  // Save point.
+  const line = document.querySelector('[data-save-line]');
+  const lines = [
+    '(The thought of hearing from you fills Luna with determination.)',
+    '(Your progress was not saved. Emails work better.)',
+    '(The star hums quietly. It would like you to send an email.)',
+  ];
+  let n = 0;
+  document.querySelector('[data-save]')?.addEventListener('click', () => {
+    play('save');
+    n = (n % (lines.length - 1)) + 1;
+    if (line) line.textContent = lines[n];
+    document.querySelector<HTMLElement>('.save__opt')?.focus();
+  });
+
+  const clock = document.querySelector('[data-clock]');
   const tick = () => {
-    if (!clock) return;
-    clock.textContent = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Toronto',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).format(new Date());
+    if (clock)
+      clock.textContent = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit', hour12: false,
+      }).format(new Date());
   };
   tick();
-  setInterval(tick, 1000);
+  setInterval(tick, 15000);
 </script>

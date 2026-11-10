@@ -9,34 +9,22 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
-const fmt = (date: Date) =>
-  new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+const fmt = (d: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' }).format(d);
 ---
 
-<Base title={`${post.data.title} — Luna Puvilland`} description={post.data.summary}>
-  <div class="read-progress" aria-hidden="true">
-    <div class="read-progress__bar" data-read-progress></div>
+<Base title={`${post.data.title} · Luna Puvilland`} description={post.data.summary}>
+  <div class="wrap area">
+    <p class="area__kicker"><a href="/log/" style="text-decoration:none">‹ notes</a> · {fmt(post.data.date)}</p>
+    <h1 class="area__title">{post.data.title}</h1>
+    <p class="area__sub">{post.data.summary}</p>
+    <div class="area__rule" aria-hidden="true">✦</div>
   </div>
-
-  <div class="wrap page-head">
-    <p class="eyebrow">Log · {fmt(post.data.date)}</p>
-    <h1 class="page-head__title">{post.data.title}</h1>
-    <p class="page-head__sub">{post.data.summary}</p>
-  </div>
-
-  <div class="wrap page-body">
-    <div class="prose">
-      <Content />
-    </div>
-
-    <div class="record-nav no-print">
-      <a href="/log">
-        <span class="record-nav__label">Back</span>
-        <span class="record-nav__title">← All entries</span>
-      </a>
-      <span class="loglist__tags">
-        {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
-      </span>
-    </div>
+  <div class="wrap">
+    <article class="prose"><Content /></article>
+    <p class="dim" style="margin-top:2.5rem;font-size:.85rem">{post.data.tags.map((t) => `#${t}`).join('  ')}</p>
+    <nav class="pager" aria-label="Back">
+      <a class="box" href="/log/"><small>‹ back</small><b>All notes</b></a>
+    </nav>
   </div>
 </Base>

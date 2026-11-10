@@ -26,14 +26,13 @@ A broadly-capable systems/infra/security person with real, shipped work (Fedora 
 
 ## Operating Context
 
-- Single-page portfolio (`/`) with an interactive canvas element ("tank" network map).
+- Home (`/`): a small walkable room with the red tree from DELTARUNE's Forgotten Man rooms. The man behind the tree talks to visitors (typewriter dialogue, choices) and hands out the resume as an EGG item. Everything in the room is also written out below it (Check / Work / Notes / Save point).
 - Systems records (`/systems/*`) documenting infrastructure, security, and personal projects.
 - Log/blog (`/log/*`) for longer-form writing.
 - Printable resume page (`/resume`).
 - Contact page (`/contact`) with email-open and channel list.
-- Dedicated network view (`/tank`).
-- Live GitHub commit feed via public API.
-- Montréal local-time clock.
+- Montréal local-time clock on the save point.
+- Placeholder pixel art and synthesized sound are drawn in code; real assets can be dropped into `public/sprites/` and `public/sounds/` (see the READMEs there).
 - Deployed at `https://craftcat.dev`.
 
 ## Capabilities and Constraints

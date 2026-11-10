@@ -1,67 +1,67 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import SystemCard from '../../components/SystemCard.astro';
 
 const systems = (await getCollection('systems')).sort((a, b) => a.data.order - b.data.order);
-const statuses = [...new Set(systems.map((entry) => entry.data.status))];
+const statuses = [...new Set(systems.map((s) => s.data.status))];
 ---
 
 <Base
-  title="Systems — Luna Puvilland"
-  description="Infrastructure, security, and software projects by Luna Puvilland, with the reasoning behind each one."
+  title="Work · Luna Puvilland"
+  description="Infrastructure, security, embedded and personal projects by Luna Puvilland, with the reasoning behind each one."
 >
-  <div class="wrap page-head">
-    <h1 class="page-head__title">What I've built</h1>
-    <p class="page-head__sub">
-      Infrastructure, security, and the things I build for fun. What each thing is, what was hard,
-      and what I'd do differently.
+  <div class="wrap area">
+    <p class="area__kicker">‹ you leave the tree behind</p>
+    <h1 class="area__title">The work</h1>
+    <p class="area__sub">
+      Infrastructure, security, embedded, and the things I build for fun. What each one is, what
+      was hard, and what I'd do differently.
     </p>
-
-    <div class="filter-bar" role="group" aria-label="Filter systems by status">
-      <button class="filter-btn" type="button" data-filter="all" aria-pressed="true">All</button>
-      {statuses.map((status) => (
-        <button class="filter-btn" type="button" data-filter={status} aria-pressed="false">
-          {status}
-        </button>
+    <div class="filters" role="group" aria-label="Filter by status">
+      <button class="filter" type="button" data-filter="all" aria-pressed="true"><span class="soul" aria-hidden="true"></span>All</button>
+      {statuses.map((s) => (
+        <button class="filter" type="button" data-filter={s} aria-pressed="false"><span class="soul" aria-hidden="true"></span>{s}</button>
       ))}
     </div>
   </div>
 
-  <div class="wrap page-body">
-    <div class="cards">
-      {systems.map((entry, i) => (
-        <SystemCard
-          entry={entry}
-          index={i}
-          wide={i === systems.length - 1 && systems.length % 2 === 1}
-        />
+  <div class="wrap">
+    <ul class="records">
+      {systems.map((e) => (
+        <li data-status={e.data.status}>
+          <a class="record-card box" href={`/systems/${e.id}/`}>
+            <span class="record-card__top">
+              <span>{e.data.designation}</span>
+              <span class="status" data-status={e.data.status}>{e.data.status}</span>
+            </span>
+            <span class="record-card__title"><span class="soul" aria-hidden="true"></span>{e.data.title}</span>
+            <span class="record-card__desc">{e.data.summary}</span>
+            <span class="record-card__stack">{e.data.role} · {e.data.period}</span>
+          </a>
+        </li>
       ))}
-    </div>
-    <p class="mono faint" id="filter-empty" hidden style="margin-top: 1.5rem;">
-      No records with that status.
-    </p>
+    </ul>
+    <p class="dim" id="filter-empty" hidden style="margin-top:1.5rem">* (Nothing here.)</p>
   </div>
 </Base>
 
 <script>
+  import { play } from '../../scripts/sfx';
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
-  const cards = document.querySelectorAll<HTMLElement>('[data-status]');
+  const cards = document.querySelectorAll<HTMLElement>('li[data-status]');
   const empty = document.getElementById('filter-empty');
-
-  buttons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const value = button.dataset.filter ?? 'all';
-      buttons.forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
-
+  buttons.forEach((b) =>
+    b.addEventListener('click', () => {
+      play('move');
+      const v = b.dataset.filter ?? 'all';
+      buttons.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
       let shown = 0;
-      cards.forEach((card) => {
-        const match = value === 'all' || card.dataset.status === value;
-        card.hidden = !match;
-        if (match) shown += 1;
+      cards.forEach((c) => {
+        const match = v === 'all' || c.dataset.status === v;
+        c.hidden = !match;
+        if (match) shown++;
       });
-
       if (empty) empty.hidden = shown > 0;
-    });
-  });
+    }),
+  );
 </script>

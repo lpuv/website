@@ -2,53 +2,21 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="404 — Luna Puvilland" description="This record does not exist.">
-  <div class="wrap page-head">
-    <p class="eyebrow">Incident · host unreachable</p>
-    <h1 class="page-head__title">404</h1>
-    <p class="page-head__sub">
-      This record doesn't exist. It may have been moved or retired.
-    </p>
-  </div>
-
-  <div class="wrap page-body">
-    <div class="lost">
-      <div class="lost__diagram" aria-hidden="true">
-        <svg viewBox="0 0 320 120" fill="none">
-          <line x1="46" y1="60" x2="118" y2="60" stroke="#6ef2c0" stroke-opacity="0.45" stroke-width="1" />
-          <line x1="118" y1="60" x2="160" y2="34" stroke="#6ef2c0" stroke-opacity="0.45" stroke-width="1" />
-          <line x1="118" y1="60" x2="160" y2="86" stroke="#6ef2c0" stroke-opacity="0.45" stroke-width="1" />
-          <line x1="160" y1="34" x2="206" y2="34" stroke="#ff5f6d" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="3 5" />
-          <line x1="160" y1="86" x2="206" y2="86" stroke="#ff5f6d" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="3 5" />
-          <line x1="206" y1="34" x2="274" y2="60" stroke="#ff5f6d" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 5" />
-          <line x1="206" y1="86" x2="274" y2="60" stroke="#ff5f6d" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 5" />
-          <circle cx="46" cy="60" r="7" stroke="#6ef2c0" stroke-width="1.4" />
-          <circle cx="46" cy="60" r="2.4" fill="#6ef2c0" />
-          <circle cx="118" cy="60" r="5" stroke="#6ef2c0" stroke-width="1.2" />
-          <circle cx="118" cy="60" r="1.8" fill="#6ef2c0" />
-          <circle cx="160" cy="34" r="4.2" stroke="#6ef2c0" stroke-width="1.1" />
-          <circle cx="160" cy="86" r="4.2" stroke="#6ef2c0" stroke-width="1.1" />
-          <circle cx="206" cy="34" r="4.2" stroke="#ff5f6d" stroke-width="1.1" stroke-dasharray="2 3" />
-          <circle cx="206" cy="86" r="4.2" stroke="#ff5f6d" stroke-width="1.1" stroke-dasharray="2 3" />
-          <circle cx="274" cy="60" r="5" stroke="#ff5f6d" stroke-width="1.1" stroke-dasharray="2 3" />
-          <circle cx="274" cy="60" r="1.8" fill="#ff5f6d" fill-opacity="0.6" />
-        </svg>
-      </div>
-
-      <div class="lost__copy">
-        <p class="mono faint" style="font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;">
-          incident summary
-        </p>
-        <pre class="lost__log">asset ......... not found
-route ......... no match
-next hop ...... unreachable</pre>
-        <ul class="actions" style="margin-top: 1.6rem;">
-          <li>
-            <a class="btn btn--primary" href="/">Return home <span class="btn__arrow" aria-hidden="true">→</span></a>
-          </li>
-          <li><a class="btn" href="/systems">Systems</a></li>
-        </ul>
-      </div>
+<Base title="404 · Luna Puvilland" description="This room doesn't exist.">
+  <div class="wrap lost">
+    <div class="lost__room" aria-hidden="true">
+      <svg class="lost__stump" viewBox="0 0 16 8" shape-rendering="crispEdges">
+        <rect x="4" y="2" width="8" height="5" fill="#3a2428" />
+        <rect x="4" y="2" width="8" height="1" fill="#5b3a3a" />
+        <rect x="2" y="6" width="12" height="2" fill="#1c1216" />
+        <rect x="11" y="3" width="1" height="4" fill="#1c1216" />
+      </svg>
+    </div>
+    <h1 class="area__title">404</h1>
+    <p class="lost__text">* (There used to be a tree here. Nobody is standing behind it.)</p>
+    <div class="actions" style="justify-content:center">
+      <a class="btn btn--primary" href="/"><span class="soul" aria-hidden="true"></span>Back to the tree</a>
+      <a class="btn" href="/systems/">The work</a>
     </div>
   </div>
 </Base>
