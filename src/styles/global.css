@@ -547,3 +547,6 @@ a:hover b > .soul, a:focus-visible b > .soul { visibility: visible; }
   .power__body { grid-template-columns: 1fr; }
   .power__skills li, .power__stats div { grid-template-columns: 1fr; gap: 0; }
 }
+
+/* The man speaks in capitals; set them a touch smaller so they read as voice, not shouting. */
+.dlg__text.is-man { font-size: 0.9em; letter-spacing: 0.03em; line-height: 1.6; }

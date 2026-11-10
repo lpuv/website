@@ -122,17 +122,32 @@ export function initRoom() {
 
     const opening: Line[] =
       n === 0
-        ? ['* (There is a tree here.)', '* (Well, there is a man here.)', man('Oh! Hello there. Welcome.'), man("This is Luna's place. I look after it while she's out."), menu('What brings you here?')]
+        ? [
+            '* (There is a tree here.)',
+            '* (Well, there is a man here.)',
+            man('WELL, WELL! A VISITOR.'),
+            man("THIS IS LUNA'S PLACE. SHE IS OUT, SO I AM MINDING IT."),
+            menu('NOW, WHAT IS IT YOU ARE LOOKING FOR?'),
+          ]
         : n % 5 === 4
-          ? ['* (Well, there is a man here.)', man('You keep finding this place. I like that about you.'), menu('What can I do for you?')]
-          : ['* (Well, there is a man here.)', menu(n === 1 ? 'Ah, you came back! Or have we met? Either way, welcome.' : 'Hello again! What can I do for you?')];
+          ? [
+              '* (Well, there is a man here.)',
+              man('YOU KEEP COMING BACK. MOST PEOPLE FORGET ME.'),
+              man('I MAY EVEN FORGET MYSELF!'),
+              menu('BUT NEVER MIND THAT. WHAT DO YOU NEED?'),
+            ]
+          : [
+              '* (Well, there is a man here.)',
+              man(n === 1 ? 'OH! IT IS YOU. YOU HAVE FORGOTTEN ME BEFORE, BUT THAT IS ALRIGHT.' : 'OH! HELLO AGAIN.'),
+              menu('WHAT IS IT YOU ARE LOOKING FOR?'),
+            ];
 
     let pick = await dlg.say(opening, { keepOpen: true });
     while (pick && pick !== 'bye') {
       if (pick === 'work') {
         await dlg.say([
-          man('Down the path. You can\'t miss it.'),
-          man('She wrote down what was hard about each one. I think that is the best part.'),
+          man('WELL, IT IS DOWN THE PATH.'),
+          man('SHE WROTE DOWN WHAT SHE BUILT, WHAT BROKE, AND WHAT SHE WOULD CHANGE.'),
         ]);
         scrollTo('work');
         return;
@@ -141,12 +156,13 @@ export function initRoom() {
       if (pick === 'who') {
         const knows = await dlg.say(
           [
-            man('Luna Puvilland. She studies computer engineering at McGill, class of 2029.'),
-            man("She leads command and data handling for McGill's CubeSat. It's going to space one day!"),
-            man('Imagine that. Space!'),
-            man('She packages software for Fedora, too. And she takes old programs apart, to see how they break.'),
+            man('WELL, SPRING CHANGED TO SUMMER, AND SUMMER CHANGED TO COLD,'),
+            man('AND SURE ENOUGH, SHE STUDIES COMPUTER ENGINEERING AT MCGILL. CLASS OF 2029.'),
+            man('ON WEEKDAYS, SHE WRITES FIRMWARE FOR A SATELLITE.'),
+            man('ON WEEKENDS, SHE PACKAGES SOFTWARE FOR FEDORA.'),
+            man('AND IN BETWEEN, SHE TAKES OLD PROGRAMS APART TO SEE HOW THEY BREAK.'),
             {
-              ...man('She is looking for an internship. Infrastructure, security, embedded. Do you know of one?'),
+              ...man('SHE IS LOOKING FOR AN INTERNSHIP. INFRASTRUCTURE, SECURITY, EMBEDDED. DO YOU KNOW OF ONE?'),
               choices: [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }],
             },
           ],
@@ -155,20 +171,20 @@ export function initRoom() {
         if (knows === 'yes') {
           const w = await dlg.say(
             [
-              man('Wonderful! You should tell her. She would like that.'),
+              man('YOU ARE VERY HELPFUL. I LIKE YOU!'),
               { text: '* (Write to Luna?)', choices: [{ id: 'mail', label: 'Email her' }, { id: 'later', label: 'Later' }] },
             ],
             { keepOpen: true },
           );
           if (w === 'mail') return mail();
         } else {
-          await dlg.say([man('Ah, well. If you hear of one, you know where to find her.')], { keepOpen: true });
+          await dlg.say([man('THAT IS ALRIGHT. IF YOU WILL IT, ONE MAY TURN UP.')], { keepOpen: true });
         }
       }
 
       if (pick === 'egg') {
         if (inventory.has('egg')) {
-          await dlg.say([man('I only had the one! It should still be in your ITEM menu.')], { keepOpen: true });
+          await dlg.say([man('I ONLY HAD THE ONE. IS IT STILL IN YOUR ITEM MENU? GOOD.')], { keepOpen: true });
         } else {
           const take = await dlg.say(
             [
@@ -183,13 +199,14 @@ export function initRoom() {
             await dlg.say(
               [
                 '* (You got the EGG.)',
-                man('That is her resume. Why is it an egg? Hm. Good question.'),
+                man('IT IS HER RESUME. PUT IT SOMEWHERE SAFE.'),
+                man('IT MAY CEASE TO EXIST SOON.'),
                 '* (It went into your ITEM menu.)',
               ],
               { keepOpen: true },
             );
           } else {
-            await dlg.say(['* (Well, the man put it back in his pocket.)', man('Of course. It will keep.')], { keepOpen: true });
+            await dlg.say(['* (Well, the man put it back in his pocket.)', man('THAT IS ALRIGHT. IT WILL KEEP. PROBABLY.')], { keepOpen: true });
           }
         }
       }
@@ -197,10 +214,10 @@ export function initRoom() {
       if (pick === 'short') {
         const go = await dlg.say(
           [
-            man('Of course! The short version.'),
-            man('Systems, security, embedded. McGill, 2029. Open to internships.'),
+            man("OF COURSE! TAKE YOUR TIME, OR DON'T."),
+            man('SYSTEMS. SECURITY. EMBEDDED. MCGILL, 2029. OPEN TO INTERNSHIPS.'),
             {
-              ...man('Where will you go?'),
+              ...man('WHERE WILL YOU GO?'),
               choices: [
                 { id: 'resume', label: 'Resume' },
                 { id: 'mail', label: 'Email her' },
@@ -214,17 +231,18 @@ export function initRoom() {
         if (go === 'mail') return mail();
       }
 
-      pick = await dlg.say([menu('Anything else?')], { keepOpen: true });
+      pick = await dlg.say([menu('ANYTHING ELSE?')], { keepOpen: true });
     }
 
     if (pick === 'bye') {
-      const liked = await dlg.say(
-        [{ ...man('Before you go! What do you think of the tree?'), choices: [{ id: 'yes', label: "It's nice" }, { id: 'no', label: 'Not for me' }] }],
+      await dlg.say(
+        [{ ...man('BEFORE YOU GO. WHAT DO YOU THINK OF THE TREE?'), choices: [{ id: 'yes', label: "It's nice" }, { id: 'no', label: 'Not for me' }] }],
         { keepOpen: true },
       );
       await dlg.say([
-        man(liked === 'yes' ? 'You have good taste. I like you!' : 'An honest opinion! I like you.'),
-        man('Take care. I am sure we will meet again.'),
+        man('YOU ARE VERY OPINIONATED. I LIKE YOU!'),
+        man('IF YOU WILL IT, WE SHALL MEET AGAIN.'),
+        man('SO TAKE YOUR TIME, AND HAVE A LOOK AROUND!'),
         '* (Well, the man waved goodbye.)',
       ]);
       if (inventory.has('egg')) gone = true;

@@ -96,6 +96,7 @@ export class Dialogue {
     const star = text.startsWith('* ');
     if (star) text = text.slice(2);
     this.textEl.classList.toggle('has-star', star);
+    this.textEl.classList.toggle('is-man', voice < 1);
     this.textEl.textContent = '';
     this.liveEl.textContent = text;
     this.nextEl.hidden = true;
