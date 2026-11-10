@@ -108,10 +108,21 @@ const year = new Date().getFullYear();
           <a href="https://tryhackme.com/p/lunapuv" rel="me">TryHackMe</a>
         </nav>
 
-        <p class="footer__legal">
-          © {year} Luna Puvilland · Montréal · no trackers<br />
-          <span class="dim">A small homage to DELTARUNE (and a Hollow Knight bench). Not affiliated with any of them.</span>
-        </p>
+        <div class="footer__legal">
+          <p>© {year} Luna Puvilland · Montréal · no trackers</p>
+          <p class="dim">
+            Music in the tree room: the Egg Room theme from DELTARUNE Chapter 5, a piano
+            arrangement of Toby Fox’s “Scarlet Forest” by
+            <a href="https://www.trevorgomes.com">Trevor Alan Gomes</a>, creator of the
+            <a href="https://www.materiacollective.com/music/deltarune-piano-collections-volume-1"><cite>DELTARUNE Piano Collections</cite></a>.
+          </p>
+          <p class="dim">
+            DELTARUNE and its characters, names, and music are © Toby Fox. This site is an unofficial
+            fan homage and is not affiliated with or endorsed by Toby Fox, Fangamer, or Materia
+            Collective. The bench is a nod to Hollow Knight by Team Cherry. The pixel art here is
+            original.
+          </p>
+        </div>
       </div>
     </footer>
 
@@ -125,6 +136,7 @@ const year = new Date().getFullYear();
       const syncSound = () => {
         const on = isOn();
         sb?.setAttribute('aria-pressed', String(on));
+        document.documentElement.dataset.audio = on ? 'on' : 'off';
         if (sl) sl.textContent = on ? 'on' : 'off';
       };
       sb?.addEventListener('click', () => {

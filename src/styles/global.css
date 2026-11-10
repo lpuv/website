@@ -550,3 +550,14 @@ a:hover b > .soul, a:focus-visible b > .soul { visibility: visible; }
 
 /* The man speaks in capitals; set them a touch smaller so they read as voice, not shouting. */
 .dlg__text.is-man { font-size: 0.9em; letter-spacing: 0.03em; line-height: 1.6; }
+
+/* Footer credits */
+.footer__legal { display: grid; gap: 0.5rem; max-width: 80ch; }
+.footer__legal a { color: var(--ink-2); text-underline-offset: 2px; }
+.footer__legal a:hover { color: var(--sel); }
+.footer__legal cite { font-style: italic; }
+
+/* Now playing: only while sound is on */
+.room__music { display: none; width: 100%; font-family: var(--pixel); color: var(--dim); font-size: 0.9rem; }
+.room__music cite { font-style: normal; color: var(--ink-2); }
+[data-audio='on'] .room__music { display: block; }

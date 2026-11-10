@@ -1,10 +1,17 @@
 # Sounds
 
-Everything has a synthesized fallback (`src/scripts/sfx.ts`). To use real files, drop them
-here and list them in `manifest.json`:
+List files in `manifest.json`:
 
 ```json
-{ "blip": "blip.wav", "move": "move.wav", "select": "select.wav", "item": "item.wav", "save": "save.wav", "ambient": "ambient.ogg" }
+{ "music": "egg.mp3", "blip": "blip.wav", "move": "move.wav", "select": "select.wav", "item": "item.wav", "save": "save.wav" }
 ```
 
-`ambient` loops quietly while the visitor is talking to the tree. Sound is off by default.
+- `music` loops while the tree room is on screen and sound is on, fading in and out. Without it, a
+  quiet synthesized drone plays instead.
+- Effects are optional; anything missing uses a synthesized fallback.
+
+Sound is off by default. If you add or change music, update the credit in the footer
+(`src/layouts/Base.astro`) and in `DESIGN.md`.
+
+`egg.mp3`: the Egg Room theme from DELTARUNE Chapter 5, a piano arrangement of Toby Fox's
+"Scarlet Forest" by Trevor Alan Gomes, creator of the *DELTARUNE Piano Collections*.

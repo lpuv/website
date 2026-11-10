@@ -5,19 +5,7 @@ dist/
 .env
 .env.production
 .DS_Store
-.impeccable/live/sessions/
 
 # local env + deploy metadata
 .env.local
 .vercel/
-
-# design scratch: prototypes and decision sketches, not shipped
-mocks/
-
-# impeccable: keep shared config + design system, drop per-machine state
-.impeccable/config.local.json
-.impeccable/live/
-.impeccable/questions/
-.impeccable/review/
-.impeccable/build/
-.impeccable/mocks/

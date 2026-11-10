@@ -3,7 +3,7 @@
  * and a man you can't quite see.
  */
 import { Dialogue, inventory, type Line } from './dialogue';
-import { ambient, play } from './sfx';
+import { music, play } from './sfx';
 import { drawCat, drawTree, loadOverrides, type Sprite } from './sprites';
 
 const H = 216;
@@ -118,7 +118,6 @@ export function initRoom() {
 
     const n = visits();
     localStorage.setItem('cc.talks', String(n + 1));
-    ambient(true);
 
     const opening: Line[] =
       n === 0
@@ -158,8 +157,8 @@ export function initRoom() {
           [
             man('WELL, SPRING CHANGED TO SUMMER, AND SUMMER CHANGED TO COLD,'),
             man('AND SURE ENOUGH, SHE STUDIES COMPUTER ENGINEERING AT MCGILL. CLASS OF 2029.'),
-            man('ON WEEKDAYS, SHE WRITES FIRMWARE FOR A SATELLITE.'),
-            man('ON WEEKENDS, SHE PACKAGES SOFTWARE FOR FEDORA.'),
+            man('ON WEEKDAYS, SHE STUDIES COMPUTER ENGINEERING.'),
+            man('ON WEEKENDS, SHE HARDENS SYSTEMS, HUNTS VULNERABILITIES, AND PACKAGES SOFTWARE FOR FEDORA.'),
             man('AND IN BETWEEN, SHE TAKES OLD PROGRAMS APART TO SEE HOW THEY BREAK.'),
             {
               ...man('SHE IS LOOKING FOR AN INTERNSHIP. INFRASTRUCTURE, SECURITY, EMBEDDED. DO YOU KNOW OF ONE?'),
@@ -261,7 +260,6 @@ export function initRoom() {
   }
 
   box.addEventListener('dlg:close', () => {
-    ambient(false);
     stage.focus({ preventScroll: true });
   });
 
@@ -301,6 +299,7 @@ export function initRoom() {
     if (m) keys.delete(m);
   });
   window.addEventListener('blur', () => keys.clear());
+  document.addEventListener('visibilitychange', () => music(visible && !document.hidden));
 
   const toRoom = (e: PointerEvent) => {
     const r = view.getBoundingClientRect();
@@ -320,6 +319,7 @@ export function initRoom() {
   new IntersectionObserver(([entry]) => {
     visible = entry.intersectionRatio > 0.35;
     if (!visible) keys.clear();
+    music(visible && !document.hidden);
   }, { threshold: [0, 0.35, 1] }).observe(stage);
 
   // --- simulation ---------------------------------------------------------
