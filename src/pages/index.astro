@@ -35,12 +35,27 @@ const fmt = (d: Date) =>
     </div>
 
     <div class="wrap">
+      <!-- * (Well, there is not a man here.) -->
+      <!-- * (There is a tree very far away. Look out the window.) -->
+      <script is:inline>
+        // Which room: the workbench, or (rarely, and never on a first visit) the tree.
+        (function () {
+          var ls = localStorage, s = 'bench';
+          var q = new URLSearchParams(location.search).get('room');
+          if (q === 'tree' || q === 'bench') s = q;
+          else if (ls.getItem('cc.far') === '1') { s = 'tree'; ls.removeItem('cc.far'); }
+          else if (ls.getItem('cc.visited') && Math.random() < 0.05) s = 'tree';
+          ls.setItem('cc.visited', '1');
+          document.documentElement.dataset.scene = s;
+        })();
+      </script>
       <div
         class="stage"
         data-stage
         tabindex="0"
         role="application"
-        aria-label="A dark room with a red tree. Someone is standing behind it. Use WASD or arrow keys to walk, Z or Enter to check the tree. The path at the bottom leads to the work. Everything here is also written out below."
+        data-label-bench="Luna's workbench: a desk with a laptop and a red circuit board, a shelf with a small server, two cat pictures, and a window. Use WASD or arrow keys to walk, Z or Enter to check what's nearby. Everything here is also written out below."
+        data-label-tree="A dark room with a red tree. Someone is standing behind it. Use WASD or arrow keys to walk, Z or Enter to check the tree. The path at the bottom leads to the work. Everything here is also written out below."
       >
         <canvas aria-hidden="true"></canvas>
         <p class="stage__hint" data-stage-hint aria-hidden="true"></p>
@@ -61,11 +76,13 @@ const fmt = (d: Date) =>
           <kbd>WASD</kbd> walk · <kbd>Z</kbd> check · <kbd>X</kbd> skip · or click around
         </p>
         <div class="actions">
-          <button class="btn btn--primary" type="button" data-talk>
+          <button class="btn btn--primary only-tree" type="button" data-talk>
             <span class="soul" aria-hidden="true"></span>Check the tree
           </button>
-          <a class="btn" href="#work">See the work</a>
+          <a class="btn only-bench btn--primary" href="#work"><span class="soul" aria-hidden="true"></span>See the work</a>
+          <a class="btn only-tree" href="#work">See the work</a>
           <a class="btn" href="/resume/">Resume</a>
+          <a class="btn only-bench" href="/contact/">Contact</a>
         </div>
       </div>
     </div>
@@ -200,9 +217,14 @@ const fmt = (d: Date) =>
 
 <script>
   import { initRoom } from '../scripts/room';
+  import { initWorkbench } from '../scripts/workbench';
   import { play } from '../scripts/sfx';
 
-  initRoom();
+  const scene = document.documentElement.dataset.scene === 'tree' ? 'tree' : 'bench';
+  const stageEl = document.querySelector<HTMLElement>('[data-stage]');
+  stageEl?.setAttribute('aria-label', stageEl.dataset[scene === 'tree' ? 'labelTree' : 'labelBench'] ?? '');
+  if (scene === 'tree') initRoom();
+  else initWorkbench();
 
   // Portrait in the About box: the same cat as the room.
   import { drawCat } from '../scripts/sprites';

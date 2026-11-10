@@ -220,7 +220,7 @@ a:hover > .soul, a:focus-visible > .soul, button:hover > .soul, button:focus-vis
 .room__controls { font-family: var(--pixel); color: var(--dim); font-size: 0.95rem; }
 
 @media (max-width: 640px) {
-  .stage { height: clamp(260px, 62vw, 420px); }
+  .stage { height: auto; aspect-ratio: 3 / 2; }
   .room__controls { display: none; }
 }
 
@@ -615,3 +615,11 @@ fieldset.field > legend { padding: 0; margin-bottom: 0.35rem; }
 .gift:hover > .soul, .gift:has(input:checked) > .soul { visibility: visible; }
 .gift:has(input:focus-visible) { outline: 2px dashed var(--sel); outline-offset: 2px; }
 @media (max-width: 420px) { .gifts__grid { grid-template-columns: 1fr; } }
+
+/* A note for people reading the styles. Minifiers keep custom properties, not comments. */
+:root { --note: '* (Well, there is not a man here.) * (Try coming back.)'; }
+
+/* Scene-specific controls under the room */
+[data-scene='tree'] .only-bench,
+:root:not([data-scene='tree']) .only-tree,
+:root:not([data-scene='tree']) .room__music { display: none !important; }

@@ -37,12 +37,22 @@ portfolio that a recruiter can scan in thirty seconds without playing anything.
 ## Home page
 
 1. **Header:** kicker, name, one-line pitch.
-2. **The room** (`src/scripts/room.ts`): a canvas at 216px tall, scaled up with nearest-neighbour.
-   A purple plateau with a step and a path leading off the bottom; the red tree in the middle.
-   - Walk with WASD/arrows or click. Z/Enter checks the tree, X skips text.
-   - Walking down the path scrolls to the work. Walking behind the tree triggers narration; the man
-     is never shown.
-   - Music fades in while the room is on screen and sound is on.
+2. **The room.** One of two scenes, picked before first paint by an inline script in `index.astro`:
+   - **The workbench** (`src/scripts/workbench.ts`), the normal homepage. A side-on room of real
+     things, each checkable with a line of dry narration and a link to its record: the pinwheel
+     server and a floating T-piece (evil-tetris) on the shelf; a laptop with a Fedora sticker and
+     the red TMS570 board on the desk; two cat pictures (one cat, then two: the Cat Pictures
+     TryHackMe rooms); a Clocktower grimoire and a packed-up `k8s` box on the floor. The window
+     shows Montréal's actual sky for the hour, and a tiny red tree on a far hill.
+     Clicking walks the cat there (grid pathfinding around the furniture), then checks.
+   - **The tree room** (`src/scripts/room.ts`), the secret. Never on a first visit. On later
+     visits there's a 1 in 20 chance (`cc.visited`). Checking the window guarantees it on the next
+     visit (`cc.far`, cleared once used), and `?room=tree` / `?room=bench` force a scene.
+   - Walk with WASD/arrows or click. Z/Enter checks, X skips text. Leaving through the bottom
+     scrolls to the work. Anti-slop rule for the workbench: only real objects with real names,
+     flat side-on drawing, no props that are there to look cosy or "hacker".
+   - Hints for people who dig: an HTML comment by the stage, a `--note` custom property in the
+     CSS (comments get minified out), and a console message.
 3. **About:** POWER-menu box. Portrait, name, class, stats, skills, one-line description.
 4. **Work:** two-pane item menu (list + detail). Collapses to a list with inline summaries on phones.
 5. **Notes:** latest log posts as bordered signs.
