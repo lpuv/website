@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 
+const gifts = ['Kindness', 'Mind', 'Ambition', 'Bravery', 'Voice'];
+
 const channels = [
   {
     label: 'Email',
@@ -64,10 +66,24 @@ const channels = [
         <span>Your email</span>
         <input name="email" type="email" autocomplete="email" required maxlength="120" placeholder="you@example.com" />
       </label>
-      <label class="field">
-        <span>Your favorite color</span>
-        <input name="color" type="color" autocomplete="color" required maxlength="120" placeholder="Purple" />
-      </label>
+      <div class="field">
+        <label for="color">Your favorite color</label>
+        <div class="swatch">
+          <input id="color" name="color" type="color" value="#ff1f3d" />
+          <output class="swatch__hex" for="color" data-hex>#FF1F3D</output>
+        </div>
+      </div>
+      <fieldset class="field gifts">
+        <legend>Your gift</legend>
+        <div class="gifts__grid">
+          {gifts.map((g, i) => (
+            <label class="gift">
+              <input type="radio" name="gift" value={g} required checked={i === 0} />
+              <span class="soul" aria-hidden="true"></span>{g}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <label class="field">
         <span>Message</span>
         <textarea name="message" rows="6" required maxlength="4000" placeholder="what you're working on, or what you want to talk about"></textarea>
@@ -94,6 +110,12 @@ const channels = [
     const form = document.querySelector<HTMLFormElement>('#compose');
     const status = document.getElementById('compose-status');
 
+    const colorIn = document.querySelector<HTMLInputElement>('#color');
+    const hex = document.querySelector('[data-hex]');
+    colorIn?.addEventListener('input', () => {
+      if (hex) hex.textContent = colorIn.value.toUpperCase();
+    });
+
     form?.addEventListener('submit', (event) => {
       event.preventDefault();
       if (!form.checkValidity()) {
@@ -102,16 +124,22 @@ const channels = [
       }
 
       const data = new FormData(form);
-      const name = String(data.get('name') ?? '').trim();
-      const email = String(data.get('email') ?? '').trim();
-      const message = String(data.get('message') ?? '').trim();
+      const field = (k: string) => String(data.get(k) ?? '').trim();
+      const name = field('name');
+      const email = field('email');
+      const message = field('message');
+      const color = field('color').toUpperCase();
+      const gift = field('gift');
 
-      const url = new URL('mailto:luna@craftcat.dev');
-      url.searchParams.set('subject', `craftcat.dev · ${name}`);
-      url.searchParams.set('body', `${message}\n\n— ${name}\n${email}`);
+      const body = `${message}\n\n— ${name}\n${email}\n\nFavorite color: ${color}\nGift: ${gift}`;
+      // encodeURIComponent, not URLSearchParams: mail clients show "+" literally.
+      const href =
+        'mailto:luna@craftcat.dev' +
+        `?subject=${encodeURIComponent(`craftcat.dev · ${name}`)}` +
+        `&body=${encodeURIComponent(body)}`;
 
       const link = document.createElement('a');
-      link.href = url.href;
+      link.href = href;
       link.rel = 'noopener noreferrer';
       link.click();
 

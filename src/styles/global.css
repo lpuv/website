@@ -583,3 +583,35 @@ a:hover b > .soul, a:focus-visible b > .soul { visibility: visible; }
   color: #fff;
   text-shadow: 0 0 3px #000, 0 0 2px #000, 0 0 1px #000;
 }
+
+/* Labels that aren't wrapped spans (color field, gift legend) */
+.field > label, .field > legend {
+  font-family: var(--pixel); color: var(--dim); text-transform: uppercase; font-size: 0.95rem;
+}
+fieldset.field { border: 0; margin: 0; padding: 0; min-width: 0; }
+fieldset.field > legend { padding: 0; margin-bottom: 0.35rem; }
+
+/* Color: the native picker, with its swatch drawn our way */
+.swatch { display: flex; align-items: center; gap: 0.8rem; }
+.swatch input[type='color'] {
+  appearance: none; -webkit-appearance: none;
+  width: 3.2rem; height: 2.2rem; padding: 3px; cursor: pointer;
+  background: #000; border: 2px solid var(--line-dim);
+}
+.swatch input[type='color']:hover, .swatch input[type='color']:focus-visible { border-color: var(--sel); outline: none; }
+.swatch input[type='color']::-webkit-color-swatch-wrapper { padding: 0; }
+.swatch input[type='color']::-webkit-color-swatch { border: 0; }
+.swatch input[type='color']::-moz-color-swatch { border: 0; }
+.swatch__hex { font-family: var(--pixel); font-size: 1.1rem; color: var(--ink-2); }
+
+/* Gift: a choice menu instead of a native select */
+.gifts__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 1.5rem; }
+.gift {
+  position: relative; display: flex; align-items: center; cursor: pointer;
+  font-family: var(--pixel); font-size: 1.2rem; padding: 0.15rem 0; color: var(--ink);
+}
+.gift input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.gift:hover, .gift:has(input:checked) { color: var(--sel); }
+.gift:hover > .soul, .gift:has(input:checked) > .soul { visibility: visible; }
+.gift:has(input:focus-visible) { outline: 2px dashed var(--sel); outline-offset: 2px; }
+@media (max-width: 420px) { .gifts__grid { grid-template-columns: 1fr; } }
