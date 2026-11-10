@@ -14,18 +14,12 @@ const posts = (await getCollection('log'))
 const fmt = (d: Date) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'UTC', year: 'numeric', month: 'short', day: '2-digit' }).format(d);
 
-const skills = [
-  { label: 'Languages', value: 'C, C++, Python, JavaScript, Java, Swift' },
-  { label: 'Infrastructure', value: 'Linux, NixOS, Proxmox, Kubernetes, Ansible, OpenShift, Docker' },
-  { label: 'Embedded', value: 'TMS570, FreeRTOS, JTAG, oscilloscopes, MATLAB/Simulink' },
-  { label: 'Security', value: 'Pentesting, CTFs, vulnerability research, least-privilege design' },
-];
 ---
 
 <Base title="Luna Puvilland · craftcat.dev">
   <section class="room" aria-labelledby="room-title">
     <div class="wrap room__head">
-      <p class="kicker">Computer engineering · McGill · Montréal</p>
+      <p class="kicker">Computer engineering · McGill '29 · Open to internships</p>
       <h1 class="room__title" id="room-title">Luna Puvilland</h1>
       <p class="room__lede">
         I build systems that have to keep running: satellite firmware, a homelab rebuilt from one
@@ -39,11 +33,9 @@ const skills = [
         data-stage
         tabindex="0"
         role="application"
-        aria-label="A dark room with a red tree. Someone is standing behind it. Use WASD or arrow keys to walk, Z or Enter to talk. Everything here is also written out below."
+        aria-label="A dark room with a red tree. Someone is standing behind it. Use WASD or arrow keys to walk, Z or Enter to check the tree. The path at the bottom leads to the work. Everything here is also written out below."
       >
         <canvas aria-hidden="true"></canvas>
-        <a class="exit exit--l" href="/systems/" aria-label="Leave left, to the work">‹ work</a>
-        <a class="exit exit--r" href="/log/" aria-label="Leave right, to the notes">notes ›</a>
         <p class="stage__hint" data-stage-hint aria-hidden="true"></p>
 
         <div class="dlg box" data-dlg hidden>
@@ -56,44 +48,15 @@ const skills = [
 
       <div class="room__bar">
         <p class="room__controls" aria-hidden="true">
-          <kbd>WASD</kbd> walk · <kbd>Z</kbd> talk · <kbd>X</kbd> skip · or click around
+          <kbd>WASD</kbd> walk · <kbd>Z</kbd> check · <kbd>X</kbd> skip · or click around
         </p>
         <div class="actions">
           <button class="btn btn--primary" type="button" data-talk>
-            <span class="soul" aria-hidden="true"></span>Talk to the tree
+            <span class="soul" aria-hidden="true"></span>Check the tree
           </button>
           <a class="btn" href="#work">See the work</a>
           <a class="btn" href="/resume/">Resume</a>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="party" aria-labelledby="party-title">
-    <div class="wrap">
-      <h2 class="section__title" id="party-title"><span class="soul soul--static" aria-hidden="true"></span>Check</h2>
-
-      <div class="party box reveal">
-        <div class="party__id">
-          <p class="party__name">LUNA</p>
-          <p class="party__class">Computer Engineer · Class of 2029</p>
-          <p class="party__check">
-            <span class="star" aria-hidden="true">*</span>LUNA · Builds systems that stay up. Takes old ones apart to see how they fall over.
-          </p>
-          <ul class="party__now">
-            <li><b>Now</b> C&amp;DH lead, McGill Orbital CubeSat</li>
-            <li><b>Since 2021</b> Packager &amp; infra volunteer, Fedora</li>
-            <li><b>Looking for</b> Internships in infrastructure, security, embedded</li>
-          </ul>
-        </div>
-        <dl class="party__stats">
-          {skills.map((s) => (
-            <div>
-              <dt>{s.label}</dt>
-              <dd>{s.value}</dd>
-            </div>
-          ))}
-        </dl>
       </div>
     </div>
   </section>
@@ -128,7 +91,7 @@ const skills = [
             <div class="detail" id={`work-${entry.id}`} data-menu-panel={i} hidden={i !== 0}>
               <p class="detail__kind">{entry.data.designation} · {entry.data.status}</p>
               <p class="detail__title">{entry.data.title}</p>
-              <p class="detail__desc"><span class="star" aria-hidden="true">*</span>{entry.data.summary}</p>
+              <p class="detail__desc">{entry.data.summary}</p>
               <dl class="detail__spec">
                 <div><dt>Role</dt><dd>{entry.data.role}</dd></div>
                 <div><dt>When</dt><dd>{entry.data.period}</dd></div>
@@ -169,7 +132,7 @@ const skills = [
       </button>
       <h2 class="section__title" id="save-title">Say hello</h2>
       <p class="save__line" data-save-line>
-        (The thought of hearing from you fills Luna with determination.)
+        Open to internships in infrastructure, security, and embedded. Email is the reliable one.
       </p>
       <div class="save__file box">
         <div class="save__row">
@@ -218,17 +181,9 @@ const skills = [
 
   // Save point.
   const line = document.querySelector('[data-save-line]');
-  const lines = [
-    '(The thought of hearing from you fills Luna with determination.)',
-    '(Your progress was not saved. Emails work better.)',
-    '(The star hums quietly. It would like you to send an email.)',
-  ];
-  let n = 0;
   document.querySelector('[data-save]')?.addEventListener('click', () => {
     play('save');
-    n = (n % (lines.length - 1)) + 1;
-    if (line) line.textContent = lines[n];
-    document.querySelector<HTMLElement>('.save__opt')?.focus();
+    if (line) line.textContent = '(Nothing was saved. An email would work better.)';
   });
 
   const clock = document.querySelector('[data-clock]');

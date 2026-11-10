@@ -9,119 +9,83 @@
 
 export type Sprite = HTMLCanvasElement | HTMLImageElement;
 
-const PAL = {
-  outline: '#2a0610',
-  leafDark: '#7c0d22',
-  leaf: '#b8162f',
-  leafLight: '#e23a48',
-  leafHi: '#f25a5e',
-  bark: '#1c1216',
-  barkMid: '#3a2428',
-  barkHi: '#5b3a3a',
-};
-
-function hash(x: number, y: number) {
-  let h = (x * 374761393 + y * 668265263) ^ 0x5bd1e995;
-  h = (h ^ (h >>> 13)) * 1274126177;
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
-}
-
-const BAYER = [
-  [0, 8, 2, 10],
-  [12, 4, 14, 6],
-  [3, 11, 1, 9],
-  [15, 7, 13, 5],
-].map((r) => r.map((v) => v / 16));
-
-/** Red-leaved tree. Returns the canvas plus where the trunk base sits in it. */
+/**
+ * The red tree: chunky horizontal brush strokes of red over magenta, a dark
+ * twisted trunk, roots spreading onto the floor.
+ */
 export function drawTree() {
-  const W = 96;
+  const W = 136;
   const H = 112;
-  const cx = 48;
-  const base = 108; // trunk base y
+  const bx = 63;
+  const by = 107;
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const g = c.getContext('2d')!;
-  const px = (x: number, y: number, col: string) => {
+  const rect = (x: number, y: number, w: number, h: number, col: string) => {
     g.fillStyle = col;
-    g.fillRect(x, y, 1, 1);
+    g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
   };
 
-  // Trunk: tapering, with a couple of roots and two branches into the crown.
-  const trunk = new Set<string>();
-  for (let y = 40; y <= base; y++) {
-    const t = (y - 40) / (base - 40);
-    let half = 3 + t * 2.2;
-    if (y > base - 6) half += (y - (base - 6)) * 1.3; // root flare
-    for (let x = Math.round(cx - half); x <= Math.round(cx + half); x++) {
-      trunk.add(`${x},${y}`);
-    }
-  }
-  const branch = (x0: number, y0: number, dx: number, len: number) => {
-    for (let i = 0; i < len; i++) {
-      const x = Math.round(x0 + dx * i);
-      const y = y0 - i;
-      trunk.add(`${x},${y}`);
-      trunk.add(`${x + 1},${y}`);
+  // Trunk, branches, roots.
+  const BARK = '#2a1230';
+  const BARK_HI = '#4a2350';
+  const line = (x0: number, y0: number, x1: number, y1: number, w: number) => {
+    const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const x = x0 + (x1 - x0) * t;
+      const y = y0 + (y1 - y0) * t;
+      rect(x - w / 2, y, w, 1, BARK);
     }
   };
-  branch(cx - 2, 62, -0.9, 16);
-  branch(cx + 2, 58, 0.8, 18);
-  branch(cx, 50, 0.1, 14);
-
-  for (const k of trunk) {
-    const [x, y] = k.split(',').map(Number);
-    const edgeL = !trunk.has(`${x - 1},${y}`);
-    const edgeR = !trunk.has(`${x + 1},${y}`);
-    let col = PAL.barkMid;
-    if (edgeR) col = PAL.bark;
-    else if (edgeL) col = PAL.barkHi;
-    else if (hash(x, y) > 0.82) col = PAL.bark;
-    px(x, y, col);
+  for (let y = 66; y <= by; y++) {
+    const t = (y - 66) / (by - 66);
+    const w = 4 + t * 2 + (y > by - 4 ? (y - (by - 4)) * 2 : 0);
+    const sway = Math.round(Math.sin(y * 0.18) * 1.2);
+    rect(bx - w / 2 + sway, y, w, 1, BARK);
+    rect(bx - w / 2 + sway, y, 1, 1, BARK_HI);
   }
+  line(bx, 82, bx - 18, 60, 3);
+  line(bx - 12, 68, bx - 24, 58, 2);
+  line(bx + 1, 78, bx + 22, 56, 3);
+  line(bx + 14, 64, bx + 30, 58, 2);
+  line(bx, 70, bx + 4, 50, 2);
+  line(bx - 3, by - 1, bx - 16, by + 3, 2);
+  line(bx + 3, by - 1, bx + 17, by + 2, 2);
+  line(bx, by, bx - 6, by + 4, 2);
+  line(bx + 10, by + 1, bx + 22, by + 4, 1);
 
-  // Crown: lumpy union of blobs.
-  const blobs: [number, number, number][] = [
-    [cx, 34, 26],
-    [cx - 22, 44, 16],
-    [cx + 23, 42, 17],
-    [cx - 12, 18, 16],
-    [cx + 13, 17, 15],
-    [cx, 52, 16],
-    [cx - 30, 32, 10],
-    [cx + 31, 30, 10],
+  // Canopy strokes: [x, y, width, tone]. y is the stroke's top; strokes are 10px tall.
+  const TONES: Record<string, [string, string, string]> = {
+    r: ['#ff4a6a', '#f2203f', '#c4123a'], // bright red
+    p: ['#ff5c86', '#ff2e5e', '#d0174f'], // pinkish red
+    m: ['#d43196', '#b5187e', '#861263'], // magenta (shadow side)
+  };
+  const strokes: [number, number, number, string][] = [
+    [40, 0, 30, 'r'], [86, 1, 22, 'r'],
+    [26, 7, 44, 'r'], [62, 7, 58, 'p'],
+    [14, 14, 30, 'm'], [38, 14, 86, 'r'],
+    [6, 21, 34, 'm'], [34, 21, 96, 'p'],
+    [10, 28, 30, 'm'], [36, 28, 94, 'r'],
+    [14, 35, 34, 'm'], [44, 35, 72, 'p'], [110, 36, 20, 'r'],
+    [24, 42, 28, 'm'], [46, 42, 82, 'r'],
+    [34, 49, 30, 'm'], [60, 49, 66, 'r'],
+    [30, 56, 62, 'r'], [92, 56, 26, 'm'],
+    [44, 63, 46, 'p'], [94, 63, 14, 'm'],
+    [54, 70, 30, 'r'],
   ];
-  const inside = (x: number, y: number) =>
-    blobs.some(([bx, by, r]) => {
-      const d = Math.hypot(x - bx, (y - by) * 1.08);
-      return d < r + (hash(x, y) - 0.5) * 2.4;
-    });
-  const light = [cx - 16, 6];
-  for (let y = 0; y < 72; y++) {
-    for (let x = 0; x < W; x++) {
-      if (!inside(x, y)) continue;
-      // Let some trunk show through in the lower crown.
-      if (trunk.has(`${x},${y}`) && y > 46 && hash(x, y) > 0.35) continue;
-      const edge = !inside(x - 1, y) || !inside(x + 1, y) || !inside(x, y - 1) || !inside(x, y + 1);
-      if (edge) {
-        px(x, y, PAL.outline);
-        continue;
-      }
-      const d = Math.hypot(x - light[0], y - light[1]) / 70;
-      // Clumps: each leaf cluster shades darker toward its own lower-right.
-      const cl = Math.sin(x * 0.45) * Math.cos(y * 0.5 + x * 0.12) * 0.12;
-      const v = 1 - d + cl + (hash(x * 3, y * 7) - 0.5) * 0.05 - BAYER[y % 4][x % 4] * 0.12;
-      let col = PAL.leafDark;
-      if (v > 0.74) col = PAL.leafHi;
-      else if (v > 0.5) col = PAL.leafLight;
-      else if (v > 0.24) col = PAL.leaf;
-      // Leaf-clump texture: small dark notches.
-      if (hash(x, y) > 0.93 && col !== PAL.leafDark) col = PAL.leafDark;
-      px(x, y, col);
+  for (const [x, y, w, t] of strokes) {
+    const [hi, mid, lo] = TONES[t];
+    const h = 10;
+    for (let row = 0; row < h; row++) {
+      // Rounded ends: inset the first and last rows.
+      const inset = row === 0 || row === h - 1 ? 2 : row === 1 || row === h - 2 ? 1 : 0;
+      const col = row < 2 ? hi : row === h - 1 ? '#3d0a2c' : row > h - 4 ? lo : mid;
+      rect(x + inset, y + row, w - inset * 2, 1, col);
     }
   }
-  return { canvas: c as Sprite, baseX: cx, baseY: base, crownBottom: 72 };
+  return { canvas: c as Sprite, baseX: bx, baseY: by, crownBottom: 80 };
 }
 
 /** Placeholder player: a small cat (craftcat). Two frames. */
