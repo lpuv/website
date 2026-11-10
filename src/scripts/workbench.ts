@@ -494,15 +494,27 @@ export function initWorkbench() {
     // Horizon: the city.
     const city = [3, 5, 2, 6, 4, 7, 3, 5, 8, 4, 2, 5, 3, 6, 2];
     city.forEach((h, i) => R(23 + i * 4, 59 - h, 4, h, '#0b0914'));
-    // Far away: the red tree, on its little purple plateau. A miniature of the one in the secret room.
-    drawFarTree(60, 37, t);
+    // Far away: a hill rising out of the city, and the red tree on top of it.
+    for (let y = 52; y <= 58; y++) {
+      const hw = Math.round(3 + (y - 52) * 2.6);
+      const x0 = Math.max(54, 70 - hw);
+      const x1 = Math.min(83, 70 + hw);
+      R(x0, y, x1 - x0, 1, '#0b0914');
+      // A purple rim along the top of the hill, like the tree room's floor.
+      if (y <= 55) {
+        R(x0, y, 1, 1, '#3d2246');
+        R(x1 - 1, y, 1, 1, '#3d2246');
+      }
+    }
+    R(67, 52, 6, 1, '#3d2246');
+    drawFarTree(60, 38, t);
     // Mullions and sill.
     R(52, 13, 2, 46, C.frame);
     R(23, 35, 60, 2, C.frame);
     R(18, 64, 70, 3, C.frameHi);
   }
 
-  /** The tree as a tiny sprite. h = highlight, r = red, l = red shadow, m = magenta, d = dark magenta, t = trunk, p = plateau. */
+  /** The tree as a tiny sprite. h = highlight, r = red, l = red shadow, m = magenta, d = dark magenta, t = trunk. */
   const FAR_TREE = [
     '...........hhhh.......',
     '.......hhhhrrrrhh...r.',
@@ -519,12 +531,9 @@ export function initWorkbench() {
     '.........tt...........',
     '........ttt...........',
     '.......t.tt.t.........',
-    '...pppppppppppppppp...',
-    '...pppppppppppppppp...',
-    '.....pppppppppppp.....',
   ];
   const FAR_COL: Record<string, string> = {
-    h: '#ff3355', r: '#ec1f45', l: '#b3123a', m: '#b3208a', d: '#740f5c', t: '#1b1838', p: '#5f3166',
+    h: '#ff3355', r: '#ec1f45', l: '#b3123a', m: '#b3208a', d: '#740f5c', t: '#1b1838',
   };
   function drawFarTree(x: number, y: number, t: number) {
     // The crown sways a pixel, like the real one.
