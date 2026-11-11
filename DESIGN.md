@@ -40,8 +40,8 @@ portfolio that a recruiter can scan in thirty seconds without playing anything.
 2. **The room.** One of two scenes, picked before first paint by an inline script in `index.astro`:
    - **The workbench** (`src/scripts/workbench.ts`), the normal homepage. A side-on room of real
      things, each checkable with a line of dry narration and a link to its record: the pinwheel
-     server and a floating T-piece (evil-tetris) on the shelf; a laptop with a Fedora sticker and
-     the red TMS570 board on the desk; two cat pictures (one cat, then two: the Cat Pictures
+     server and a floating T-piece (evil-tetris) on the shelf; a monitor showing Fedora and the red
+     TMS570 board on the desk; two cat pictures (one cat, then two: the Cat Pictures
      TryHackMe rooms); a Clocktower grimoire and a packed-up `k8s` box on the floor. The window
      shows Montréal's actual sky for the hour, and a tiny red tree on a far hill.
      Clicking walks the cat there (grid pathfinding around the furniture), then checks.
@@ -49,7 +49,10 @@ portfolio that a recruiter can scan in thirty seconds without playing anything.
      visits there's a 1 in 20 chance (`cc.visited`). Checking the window guarantees it on the next
      visit (`cc.far`, cleared once used), and `?room=tree` / `?room=bench` force a scene.
    - Walk with WASD/arrows or click. Z/Enter checks, X skips text. Leaving through the bottom
-     scrolls to the work. Anti-slop rule for the workbench: only real objects with real names,
+     scrolls to the work. The room is loosely Luna's own: teal accent wall, string lights, a tall paper floor lamp, a long
+     white shelf (pothos, camera, penguin plush), a birch desk, the red office chair, a grey rug,
+     curtains, and a DELTARUNE poster. The poster and penguin are checkable but link nowhere.
+     Anti-slop rule for the workbench: only real objects with real names,
      flat side-on drawing, no props that are there to look cosy or "hacker".
    - Hints for people who dig: an HTML comment by the stage, a `--note` custom property in the
      CSS (comments get minified out), and a console message.

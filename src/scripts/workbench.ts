@@ -14,19 +14,22 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Palette: dark, a little warm. No neon.
 const C = {
-  wall: '#221c30',
-  wallLo: '#1c1728',
-  base: '#141019',
-  floor: '#33262b',
-  seam: '#2a1f24',
-  wood: '#5e4134',
-  woodHi: '#77553f',
-  woodLo: '#3f2b23',
-  frame: '#4c3f5c',
-  frameHi: '#62537a',
+  wall: '#1d4550', // the teal accent wall, at night
+  wallLo: '#173840',
+  base: '#9aa6ac',
+  floor: '#4a3a31',
+  floorHi: '#544236',
+  seam: '#3c2f28',
+  birch: '#c9a77c',
+  birchHi: '#dcc095',
+  birchLo: '#9f7f58',
+  white: '#d6d2de',
+  whiteLo: '#8e8a98',
+  frame: '#2f7f8a',
+  frameHi: '#47a0aa',
   ink: '#140c24',
   paper: '#d9d1e8',
-  shelf: '#4f382d',
+  warm: '#ffd890',
 };
 
 type Thing = {
@@ -102,9 +105,9 @@ export function initWorkbench() {
   const things: Thing[] = [
     {
       id: 'window',
-      glint: [80, 16],
-      hit: [20, 10, 66, 54],
-      spot: [53, 112],
+      glint: [72, 14],
+      hit: [14, 8, 68, 58],
+      spot: [48, 112],
       lines: () => [
         `* (Montréal, ${time.label}. ${sky.label})`,
         '* (Very far away, there is a red tree.)',
@@ -113,10 +116,17 @@ export function initWorkbench() {
       ],
     },
     {
+      id: 'poster',
+      glint: [109, 20],
+      hit: [92, 18, 20, 28],
+      spot: [102, 112],
+      lines: () => ['* (A DELTARUNE poster.)', '* (...That explains a few things.)'],
+    },
+    {
       id: 'cats',
-      glint: [150, 26],
-      hit: [98, 16, 56, 32],
-      spot: [126, 112],
+      glint: [156, 26],
+      hit: [114, 18, 46, 28],
+      spot: [136, 112],
       lines: () => [
         '* (Two cat pictures. One cat in the first. Two in the second.)',
         '* (They are also TryHackMe rooms. Luna wrote both.)',
@@ -126,9 +136,9 @@ export function initWorkbench() {
     },
     {
       id: 'pinwheel',
-      glint: [187, 23],
-      hit: [164, 18, 26, 18],
-      spot: [176, 124],
+      glint: [183, 23],
+      hit: [162, 20, 24, 16],
+      spot: [172, 114],
       lines: () => [
         '* (A small black box called pinwheel.)',
         '* (Ryzen 7. 27 GiB of RAM. A 2.32 TiB ZFS pool.)',
@@ -139,22 +149,26 @@ export function initWorkbench() {
     },
     {
       id: 'tetris',
-      glint: [212, 16],
-      hit: [194, 14, 20, 20],
-      spot: [204, 124],
-      lines: () => [
-        '* (A T-piece from evil-tetris.)',
-        '* (It was supposed to fall. It went up instead.)',
-      ],
+      glint: [207, 13],
+      hit: [190, 12, 18, 22],
+      spot: [190, 114],
+      lines: () => ['* (A T-piece from evil-tetris.)', '* (It was supposed to fall. It went up instead.)'],
       href: '/systems/evil-tetris/',
     },
     {
-      id: 'laptop',
-      glint: [247, 58],
-      hit: [220, 54, 30, 24],
-      spot: [235, 124],
+      id: 'penguin',
+      glint: [266, 19],
+      hit: [250, 16, 18, 20],
+      spot: [262, 116],
+      lines: () => ['* (A penguin.)', '* (It is not a project. It is just a penguin.)'],
+    },
+    {
+      id: 'monitor',
+      glint: [231, 47],
+      hit: [196, 44, 38, 28],
+      spot: [196, 122],
       lines: () => [
-        "* (A laptop. The sticker on the lid is Fedora's.)",
+        "* (A monitor. Fedora's on it.)",
         '* (Luna packages software for Fedora: 86box, some Rust crates, makedeb.)',
         "* (A package isn't done when it builds. It's done when someone else can rebuild it.)",
       ],
@@ -162,11 +176,11 @@ export function initWorkbench() {
     },
     {
       id: 'launchpad',
-      glint: [273, 70],
-      hit: [254, 66, 22, 14],
-      spot: [264, 124],
+      glint: [257, 67],
+      hit: [238, 64, 22, 12],
+      spot: [246, 116],
       lines: () => [
-        '* (A red TMS570 board, plugged into the laptop.)',
+        '* (A red TMS570 board, plugged into the monitor.)',
         "* (It's nearly the same chip as the CubeSat's flight computer.)",
         '* (Nearly. A driver can work here and still be wrong in orbit.)',
       ],
@@ -174,9 +188,9 @@ export function initWorkbench() {
     },
     {
       id: 'grimoire',
-      glint: [155, 114],
-      hit: [132, 110, 24, 16],
-      spot: [144, 134],
+      glint: [123, 141],
+      hit: [98, 136, 28, 16],
+      spot: [112, 158],
       lines: () => [
         '* (A Blood on the Clocktower grimoire.)',
         "* (The Storyteller keeps every player's secret in one of these.)",
@@ -186,9 +200,9 @@ export function initWorkbench() {
     },
     {
       id: 'box',
-      glint: [290, 151],
-      hit: [258, 146, 34, 26],
-      spot: [248, 164],
+      glint: [42, 151],
+      hit: [12, 146, 34, 26],
+      spot: [56, 162],
       lines: () => [
         '* (A cardboard box labelled k8s.)',
         '* (It ran fine. It was just more cluster than one machine needed.)',
@@ -200,9 +214,11 @@ export function initWorkbench() {
 
   // Footprints on the floor that the cat walks around.
   const solid: [number, number, number, number][] = [
-    [158, 100, 134, 20], // desk
-    [132, 112, 24, 12], // grimoire
-    [260, 150, 32, 20], // box
+    [174, 100, 100, 10], // desk
+    [204, 104, 24, 14], // chair
+    [278, 100, 16, 10], // lamp
+    [100, 140, 24, 10], // grimoire
+    [14, 150, 30, 20], // box
   ];
   const walkable = (x: number, y: number) =>
     x >= 6 && x <= RW - 6 && y >= 108 && (y <= 196 || (x > 127 && x < 173)) &&
@@ -457,61 +473,120 @@ export function initWorkbench() {
 
   function drawWall() {
     R(0, 0, RW, 100, C.wall);
-    R(0, 0, RW, 4, C.wallLo);
+    R(0, 0, RW, 3, C.wallLo);
     R(0, 96, RW, 4, C.base);
+    R(0, 96, RW, 1, '#c4ccd0');
+  }
+
+  /** Warm glow from the lamp: stepped, so it stays pixel-crisp. */
+  function drawLampGlow() {
+    const cx = 286;
+    const cy = 64;
+    const rings: [number, number][] = [[78, 0.02], [66, 0.025], [54, 0.03], [42, 0.035], [30, 0.045], [18, 0.05]];
+    g.fillStyle = C.warm;
+    for (const [r, a] of rings) {
+      g.globalAlpha = a;
+      for (let y = -r; y <= r; y++) {
+        const hw = Math.round(Math.sqrt(r * r - y * y) * 1.15);
+        const yy = cy + y;
+        if (yy < 0 || yy > 196) continue;
+        const x0 = Math.max(0, cx - hw);
+        const x1 = Math.min(RW, cx + hw);
+        if (x1 > x0) g.fillRect(OX + x0, OY + yy, x1 - x0, 1);
+      }
+    }
+    g.globalAlpha = 1;
   }
 
   function drawFloor() {
     R(0, 100, RW, 96, C.floor);
-    for (let y = 108; y < 196; y += 11) {
+    for (let y = 106; y < 196; y += 9) {
       R(0, y, RW, 1, C.seam);
-      const off = ((y / 11) | 0) % 2 ? 0 : 37;
-      for (let x = off; x < RW; x += 74) R(x, y + 1, 1, 10, C.seam);
+      const off = ((y / 9) | 0) % 3 * 23;
+      for (let x = off; x < RW; x += 69) R(x, y + 1, 1, 8, C.seam);
     }
+    // Rug.
+    R(140, 122, 122, 48, '#4f4e57');
+    R(140, 122, 122, 1, '#605f69');
+    R(143, 125, 116, 1, '#45444c');
+    R(143, 166, 116, 1, '#45444c');
+    R(143, 125, 1, 42, '#45444c');
+    R(258, 125, 1, 42, '#45444c');
+    for (let i = 0; i < 40; i++) R(142 + ((i * 53) % 118), 124 + ((i * 29) % 44), 1, 1, '#5a5962');
     // Doorway at the bottom, leading out.
     R(124, 196, 52, 12, C.floor);
     R(124, 196, 1, 12, C.seam);
     R(175, 196, 1, 12, C.seam);
     // Window light on the floor.
-    g.globalAlpha = 0.06;
+    g.globalAlpha = 0.07;
     g.fillStyle = sky.glow;
-    for (let i = 0; i < 30; i++) g.fillRect(OX + 24 + i * 0.6, OY + 104 + i, 62, 1);
+    for (let i = 0; i < 30; i++) g.fillRect(OX + 18 + i * 0.6, OY + 104 + i, 62, 1);
     g.globalAlpha = 1;
   }
 
+  /** String lights draped along the top of the wall. */
+  const LIGHT_PTS: [number, number][] = [[4, 5], [70, 20], [128, 6], [196, 18], [252, 7], [296, 15]];
+  function lightY(x: number) {
+    for (let i = 0; i < LIGHT_PTS.length - 1; i++) {
+      const [x0, y0] = LIGHT_PTS[i];
+      const [x1, y1] = LIGHT_PTS[i + 1];
+      if (x < x0 || x > x1) continue;
+      const u = (x - x0) / (x1 - x0);
+      const sag = Math.sin(u * Math.PI) * 5;
+      return Math.round(y0 + (y1 - y0) * u + sag);
+    }
+    return 6;
+  }
+  function drawLights(t: number) {
+    for (let x = 4; x <= 296; x++) R(x, lightY(x), 1, 1, '#0d1a1e');
+    for (let x = 8, i = 0; x <= 292; x += 10, i++) {
+      const y = lightY(x) + 1;
+      const tw = reduce ? 1 : 0.5 + 0.5 * Math.sin(t * 0.0015 + i * 2.1);
+      g.globalAlpha = 0.12 + tw * 0.12;
+      R(x - 2, y - 1, 5, 4, C.warm);
+      g.globalAlpha = 1;
+      R(x, y, 1, 2, tw > 0.35 ? '#fff0c0' : '#e0b870');
+    }
+  }
+
   function drawWindow(t: number) {
-    R(20, 10, 66, 54, C.frame);
-    R(20, 10, 66, 2, C.frameHi);
-    R(23, 13, 60, 46, sky.sky);
+    // Curtains.
+    R(6, 4, 10, 70, '#55635e');
+    R(80, 4, 10, 70, '#55635e');
+    for (const x of [8, 12, 83, 87]) R(x, 4, 1, 70, '#46524e');
+    R(4, 2, 88, 2, '#2a2f2e'); // rod
+    // Frame and sky.
+    R(16, 10, 64, 54, C.frame);
+    R(16, 10, 64, 2, C.frameHi);
+    R(19, 13, 58, 47, sky.sky);
     if (sky.stars) {
       for (const [i, [sx, sy]] of stars.entries()) {
         const on = reduce || Math.sin(t * 0.001 + i * 1.7) > -0.6;
-        if (on) R(sx, sy, 1, 1, i % 4 ? '#8a8fb8' : '#d8dcff');
+        if (on) R(sx - 4, sy, 1, 1, i % 4 ? '#8a8fb8' : '#d8dcff');
       }
-      R(70, 17, 4, 4, '#e8e4d0'); // moon
-      R(71, 17, 3, 1, sky.sky);
+      R(64, 17, 4, 4, '#e8e4d0'); // moon
+      R(65, 17, 3, 1, sky.sky);
     }
     // Horizon: the city.
     const city = [3, 5, 2, 6, 4, 7, 3, 5, 8, 4, 2, 5, 3, 6, 2];
-    city.forEach((h, i) => R(23 + i * 4, 59 - h, 4, h, '#0b0914'));
+    city.forEach((h, i) => R(19 + i * 4, 60 - h, 4, h, '#0b0914'));
     // Far away: a hill rising out of the city, and the red tree on top of it.
-    for (let y = 52; y <= 58; y++) {
-      const hw = Math.round(3 + (y - 52) * 2.6);
-      const x0 = Math.max(54, 70 - hw);
-      const x1 = Math.min(83, 70 + hw);
+    for (let y = 53; y <= 59; y++) {
+      const hw = Math.round(3 + (y - 53) * 2.6);
+      const x0 = Math.max(48, 64 - hw);
+      const x1 = Math.min(77, 64 + hw);
       R(x0, y, x1 - x0, 1, '#0b0914');
-      // A purple rim along the top of the hill, like the tree room's floor.
-      if (y <= 55) {
+      if (y <= 56) {
         R(x0, y, 1, 1, '#3d2246');
         R(x1 - 1, y, 1, 1, '#3d2246');
       }
     }
-    R(67, 52, 6, 1, '#3d2246');
-    drawFarTree(60, 38, t);
+    R(61, 53, 6, 1, '#3d2246');
+    drawFarTree(54, 39, t);
     // Mullions and sill.
-    R(52, 13, 2, 46, C.frame);
-    R(23, 35, 60, 2, C.frame);
-    R(18, 64, 70, 3, C.frameHi);
+    R(47, 13, 2, 47, C.frame);
+    R(19, 35, 58, 2, C.frame);
+    R(14, 64, 68, 3, '#c9c4d0');
   }
 
   /** The tree as a tiny sprite. h = highlight, r = red, l = red shadow, m = magenta, d = dark magenta, t = trunk. */
@@ -556,86 +631,152 @@ export function initWorkbench() {
     R(x + 1, y + 4, 3, 1, C.ink);
   }
 
-  function drawCatPictures() {
-    // Cat Pictures 1
-    R(100, 18, 22, 24, '#8b7354');
-    R(102, 20, 18, 20, C.paper);
-    catFace(108, 27);
-    // Cat Pictures 2
-    R(130, 24, 22, 24, '#8b7354');
-    R(132, 26, 18, 20, C.paper);
-    catFace(134, 33);
-    catFace(142, 33);
+  function drawPosters() {
+    // DELTARUNE poster: a dark scene, a lit doorway, a figure.
+    R(94, 20, 16, 24, '#e6e2ea');
+    R(95, 21, 14, 22, '#1f1a4a');
+    R(95, 21, 14, 3, '#2a2160');
+    R(96, 22, 12, 1, '#e6e2ea'); // title
+    R(99, 27, 6, 10, '#a3167a');
+    R(100, 28, 4, 8, '#5fd0d8');
+    R(101, 34, 2, 3, '#140c24');
+    R(95, 38, 14, 5, '#2b8a8f');
+    // Cat Pictures 1 and 2.
+    R(116, 20, 20, 22, '#b89a6a');
+    R(118, 22, 16, 18, C.paper);
+    catFace(123, 28);
+    R(140, 24, 20, 22, '#b89a6a');
+    R(142, 26, 16, 18, C.paper);
+    catFace(143, 32);
+    catFace(151, 32);
   }
 
   function drawShelf(t: number) {
-    R(160, 36, 60, 3, C.shelf);
-    R(160, 36, 60, 1, C.woodHi);
-    R(166, 39, 2, 4, C.woodLo);
-    R(212, 39, 2, 4, C.woodLo);
+    // Long white floating shelf.
+    R(160, 34, 114, 4, C.white);
+    R(160, 37, 114, 1, C.whiteLo);
     // pinwheel: a small black box with one light.
-    R(166, 22, 22, 14, '#17161d');
-    R(166, 22, 22, 1, '#2d2b38');
-    R(168, 32, 6, 1, '#24222d');
+    R(164, 21, 20, 13, '#17161d');
+    R(164, 21, 20, 1, '#2d2b38');
+    R(166, 30, 6, 1, '#24222d');
     const blink = reduce || Math.floor(t / 900) % 3 !== 0;
-    R(184, 32, 2, 1, blink ? '#9fd0ff' : '#2a3a4a');
+    R(180, 30, 2, 1, blink ? '#9fd0ff' : '#2a3a4a');
     // The T-piece, floating a little above the shelf.
-    const bob = reduce ? 0 : Math.round(Math.sin(t * 0.002) * 1);
-    const ty = 18 + bob;
+    const bob = reduce ? 0 : Math.round(Math.sin(t * 0.002));
+    const ty = 16 + bob;
     const block = (x: number, y: number) => {
       R(x, y, 5, 5, '#a3167a');
       R(x, y, 5, 1, '#c02a92');
       R(x, y, 1, 5, '#c02a92');
     };
+    block(191, ty);
     block(196, ty);
     block(201, ty);
-    block(206, ty);
-    block(201, ty + 5);
+    block(196, ty + 5);
+    // Pothos: a grey pot, leaves up top, a vine trailing down past the shelf.
+    R(214, 26, 11, 8, '#8e8478');
+    R(214, 26, 11, 1, '#a59a8c');
+    const leaf = (x: number, y: number, c = '#4f9a52') => {
+      R(x, y, 3, 2, c);
+      R(x + 1, y - 1, 1, 1, c);
+    };
+    leaf(212, 22, '#3f8244');
+    leaf(216, 19);
+    leaf(220, 21, '#5aae5c');
+    leaf(223, 24, '#3f8244');
+    leaf(217, 23, '#5aae5c');
+    for (let y = 37; y < 54; y++) R(225 + Math.round(Math.sin(y * 0.4)), y, 1, 1, '#2f6a34');
+    leaf(225, 41, '#4f9a52');
+    leaf(223, 47, '#3f8244');
+    leaf(226, 52, '#5aae5c');
+    // Camera.
+    R(232, 27, 14, 7, '#1a1a1e');
+    R(235, 25, 6, 2, '#1a1a1e');
+    R(232, 27, 14, 1, '#34343c');
+    R(237, 29, 4, 4, '#3a3a44');
+    R(238, 30, 2, 2, '#6a7a8a');
+    R(243, 28, 1, 1, '#c8c8d0');
+    // Penguin plush.
+    R(252, 22, 12, 12, '#1b1b24');
+    R(254, 25, 8, 9, '#ecebf2');
+    R(252, 20, 10, 3, '#1b1b24');
+    R(254, 21, 1, 1, '#fff');
+    R(258, 23, 4, 2, '#f2c230');
+    R(250, 26, 2, 5, '#1b1b24');
+    R(264, 26, 2, 5, '#1b1b24');
+    R(253, 33, 3, 1, '#f2c230');
+    R(260, 33, 3, 1, '#f2c230');
   }
 
   function drawDesk() {
-    // Laptop: we see the back of the lid, with a sticker.
-    R(222, 56, 26, 20, '#6e6c7a');
-    R(222, 56, 26, 1, '#8a8896');
-    R(247, 56, 1, 20, '#55535f');
-    R(233, 63, 5, 5, '#3c6eb4');
-    R(235, 64, 1, 4, '#fff');
-    R(236, 64, 1, 1, '#fff');
-    R(234, 65, 3, 1, '#fff');
-    // LaunchPad: a small red board, cable running to the laptop.
-    R(256, 70, 18, 7, '#b8102c');
-    R(256, 70, 18, 1, '#d8263f');
-    R(262, 72, 4, 3, '#1a1a1a');
-    R(258, 71, 1, 1, '#e9e4d0');
-    R(271, 71, 1, 1, '#e9e4d0');
-    R(250, 74, 6, 1, '#d8d4dc');
-    R(248, 73, 2, 1, '#d8d4dc');
-    // Desk: top, front, legs.
-    R(158, 76, 134, 4, C.woodHi);
-    R(158, 80, 134, 3, C.wood);
-    R(158, 83, 134, 15, C.woodLo);
-    R(160, 85, 60, 1, C.wood); // drawer line
-    R(188, 89, 6, 1, C.woodHi); // handle
-    R(160, 98, 4, 20, C.woodLo);
-    R(286, 98, 4, 20, C.woodLo);
+    // Monitor, showing Fedora.
+    R(198, 46, 36, 21, '#121216');
+    for (let y = 0; y < 17; y++) R(200, 48 + y, 32, 1, y < 6 ? '#24386a' : y < 12 ? '#2c4a86' : '#3560a4');
+    R(213, 53, 6, 6, '#51a2da');
+    R(212, 54, 8, 4, '#51a2da');
+    R(215, 54, 1, 4, '#fff');
+    R(216, 54, 2, 1, '#fff');
+    R(214, 55, 3, 1, '#fff');
+    R(214, 67, 4, 5, '#2a2a30');
+    R(209, 71, 14, 1, '#2a2a30');
+    // Keyboard and the red board, cable running to the monitor.
+    R(203, 71, 4, 1, '#202028');
+    R(224, 71, 12, 1, '#202028');
+    R(240, 68, 16, 5, '#b8102c');
+    R(240, 68, 16, 1, '#d8263f');
+    R(245, 69, 4, 3, '#1a1a1a');
+    R(242, 69, 1, 1, '#e9e4d0');
+    R(253, 69, 1, 1, '#e9e4d0');
+    R(234, 71, 6, 1, '#d8d4dc');
+    // Birch desk with white legs.
+    R(174, 72, 100, 3, C.birchHi);
+    R(174, 75, 100, 2, C.birch);
+    R(174, 77, 100, 3, C.birchLo);
+    R(176, 80, 3, 30, '#c9c4d0');
+    R(269, 80, 3, 30, '#c9c4d0');
+  }
+
+  /** Tall paper floor lamp on wooden legs, lit. */
+  function drawLamp(t: number) {
+    const flick = reduce ? 0 : Math.sin(t * 0.003) * 0.02;
+    R(279, 30, 14, 66, '#f6e9c6');
+    for (const x of [282, 286, 290]) R(x, 31, 1, 64, '#eadbb0');
+    R(279, 30, 14, 1, '#fff8e0');
+    g.globalAlpha = 0.2 + flick;
+    R(277, 28, 18, 70, C.warm);
+    g.globalAlpha = 1;
+    R(280, 96, 2, 14, '#8a6a4a');
+    R(285, 96, 2, 12, '#7a5a3c');
+    R(290, 96, 2, 14, '#8a6a4a');
+  }
+
+  function drawChair() {
+    R(209, 86, 16, 17, '#b8322e');
+    R(209, 86, 16, 2, '#d0473f');
+    R(208, 88, 1, 13, '#8e2522');
+    R(205, 101, 24, 5, '#9a2a27');
+    R(205, 101, 24, 1, '#c03a35');
+    R(216, 106, 2, 8, '#d6d2de');
+    R(206, 114, 22, 1, '#d6d2de');
+    for (const x of [206, 216, 227]) R(x, 115, 1, 2, '#8e8a98');
   }
 
   function drawGrimoire() {
-    R(132, 114, 24, 10, '#4a1220');
-    R(132, 114, 24, 2, '#6a1c2c');
-    R(155, 114, 1, 10, '#2e0b14');
-    R(141, 117, 5, 5, '#c9a24a');
-    R(142, 118, 3, 3, '#4a1220');
-    R(143, 118, 1, 2, '#c9a24a');
+    R(100, 140, 24, 10, '#4a1220');
+    R(100, 140, 24, 2, '#6a1c2c');
+    R(123, 140, 1, 10, '#2e0b14');
+    R(109, 143, 5, 5, '#c9a24a');
+    R(110, 144, 3, 3, '#4a1220');
+    R(111, 144, 1, 2, '#c9a24a');
   }
 
   function drawBox() {
-    R(260, 150, 32, 20, '#8a6a46');
-    R(260, 150, 32, 3, '#a3825a');
-    R(274, 150, 4, 20, '#b89a6a');
-    R(264, 158, 8, 5, '#e6e0d0');
-    R(265, 160, 6, 1, '#6a6070');
-    R(291, 150, 1, 20, '#6a5034');
+    R(14, 150, 30, 20, '#8a6a46');
+    R(14, 150, 30, 3, '#a3825a');
+    R(27, 150, 4, 20, '#b89a6a');
+    R(17, 158, 8, 5, '#e6e0d0');
+    R(18, 160, 6, 1, '#6a6070');
+    R(43, 150, 1, 20, '#6a5034');
   }
 
   /** A four-point twinkle, a few pixels across. Phase 0..1. */
@@ -705,13 +846,17 @@ export function initWorkbench() {
     g.fillRect(0, 0, W, H);
     drawWall();
     drawFloor();
+    drawLampGlow();
     drawWindow(t);
-    drawCatPictures();
+    drawPosters();
+    drawLights(t);
     drawShelf(t);
     drawDesk();
+    drawLamp(t);
     // Floor objects and the cat, back to front.
     const floorThings: [number, () => void][] = [
-      [124, drawGrimoire],
+      [117, drawChair],
+      [150, drawGrimoire],
       [170, drawBox],
       [P.y, drawPlayer],
     ];
