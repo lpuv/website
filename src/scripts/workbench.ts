@@ -120,7 +120,7 @@ export function initWorkbench() {
       glint: [109, 20],
       hit: [92, 18, 20, 28],
       spot: [102, 112],
-      lines: () => ['* (A DELTARUNE poster.)', '* (...That explains a few things.)'],
+      lines: () => ['* (A DELTARUNE poster.)', '* (The edges are a little worn.)'],
     },
     {
       id: 'cats',
