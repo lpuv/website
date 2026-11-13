@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+# * (Well, there is not a man here.)
+Disallow: /behind-the-tree/
 
 Sitemap: https://craftcat.dev/sitemap-index.xml

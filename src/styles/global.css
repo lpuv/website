@@ -626,3 +626,6 @@ fieldset.field > legend { padding: 0; margin-bottom: 0.35rem; }
 
 .room__tap { display: none; font-family: var(--pixel); color: var(--dim); font-size: 0.95rem; width: 100%; }
 @media (max-width: 640px) { .room__tap { display: block; } }
+
+.flag { padding: 0.8rem 1.2rem; border-width: 2px; border-color: var(--sel); }
+.flag code { font-family: var(--mono); font-size: 1.05rem; color: var(--sel); }

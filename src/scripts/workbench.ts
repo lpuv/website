@@ -175,6 +175,19 @@ export function initWorkbench() {
       href: '/systems/fedora/',
     },
     {
+      id: 'note',
+      glint: [195, 46],
+      hit: [185, 45, 12, 13],
+      spot: [184, 116],
+      lines: () => [
+        '* (A sticky note on the wall. It says CVE-2012-2982.)',
+        "* (A Webmin bug from 2012. People assume it's dead. It isn't.)",
+        '* (Luna rebuilt the vulnerable server and wrote her own exploit, instead of using a public one.)',
+        '* (The fix was boring: patch it, and stop running it as root.)',
+      ],
+      href: '/systems/cve-2012-2982/',
+    },
+    {
       id: 'launchpad',
       glint: [257, 67],
       hit: [238, 64, 22, 12],
@@ -719,6 +732,13 @@ export function initWorkbench() {
     R(214, 55, 3, 1, '#fff');
     R(214, 67, 4, 5, '#2a2a30');
     R(209, 71, 14, 1, '#2a2a30');
+    // Sticky note: a CVE number, scribbled.
+    R(186, 47, 9, 9, '#f2dc6a');
+    R(186, 47, 9, 1, '#f8e98e');
+    R(187, 49, 6, 1, '#6a5a2a');
+    R(187, 51, 7, 1, '#6a5a2a');
+    R(187, 53, 4, 1, '#6a5a2a');
+    R(194, 55, 1, 1, '#c9b450');
     // Keyboard and the red board, cable running to the monitor.
     R(203, 71, 4, 1, '#202028');
     R(224, 71, 12, 1, '#202028');

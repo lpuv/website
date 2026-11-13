@@ -90,6 +90,15 @@ an empty void where Gaster speaks, in the style of the Chapter 1 intro.
 - He ends with "NOW. YOU MUST CREATE A VESSEL." Create goes to the contact form; Refuse returns you
   to the tree, and FRIEND is gone until reload.
 
+## For people who dig
+
+- `/robots.txt` disallows `/behind-the-tree/`, a classic CTF breadcrumb. That page (noindex, not in
+  the sitemap) has a flag and a link to `/?room=tree`.
+- `/.well-known/security.txt` is real: contact, expiry (renew yearly), canonical URL.
+- The workbench's sticky note is the CVE-2012-2982 record, so the room has a security object.
+- `public/og.png` is a render of the workbench from a production preview (the dev toolbar shows
+  up otherwise). Regenerate it when the room changes.
+
 ## Inner pages
 
 - `/systems/` work records with status filters; `/systems/[slug]/` record with a details box.

@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://craftcat.dev',
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/behind-the-tree') })],
   build: {
     // Inline small assets so the site is one round trip on a cold cache.
     inlineStylesheets: 'auto',
